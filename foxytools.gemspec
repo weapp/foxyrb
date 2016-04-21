@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'foxytools/version'
+require 'foxy/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "foxytools"
-  spec.version       = Foxytools::VERSION
+  spec.version       = Foxy::VERSION
   spec.authors       = ["Manuel Albarrán"]
   spec.email         = ["weap88@gmail.com"]
 

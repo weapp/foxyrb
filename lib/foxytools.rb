@@ -1,5 +1,5 @@
-require "foxytools/version"
+require "foxy/version"
+require "foxy/file_cache"
 
-module Foxytools
-  # Your code goes here...
+module Foxy
 end
