@@ -98,7 +98,7 @@ module Foxy
     # def inspect
     #   super.sub("#<struct ", "#<" )
     # end
- 
+
     # def pretty_print(q)
     #   q.text inspect
     # end

@@ -10,12 +10,12 @@ module Foxy
 
     def search(**kws)
       return search(parse_css(kws[:css])) if kws[:css]
-      
+
       filters = kws.delete(:filters)
-      
-      Collection.new(flat_map { |node| node.search(**kws) }).tap { |r|
-        return filters.inject(r){|memo, filter| r.public_send(filter) } if filters
-      }
+
+      Collection.new(flat_map { |node| node.search(**kws) }).tap do |r|
+        return filters.inject(r) { |_memo, filter| r.public_send(filter) } if filters
+      end
     end
 
     def css(query)
@@ -46,8 +46,8 @@ module Foxy
       mapy.clean(*args)
     end
 
-
     private
+
     # assert Foxy::Html.new.parse_css("tag#id") == {tagname: "tag", id: "id"}
     # assert Foxy::Html.new.parse_css("#id") == {id: "id"}
     # assert Foxy::Html.new.parse_css("tag") == {tagname: "tag"}
@@ -59,12 +59,12 @@ module Foxy
       token = "([^:#\.\s]+)"
       css
         .scan(/#{token}|##{token}|\.#{token}|:#{token}/)
-        .each_with_object({}) { |(tagname, id, cls, filter), memo| 
+        .each_with_object({}) do |(tagname, id, cls, filter), memo|
           next memo[:tagname] = tagname if tagname
           next memo[:id] = id if id
           memo.fetch(:filters) { memo[:filters] = [] } << filter if filter
           memo.fetch(:cls) { memo[:cls] = [] } << cls if cls
-        }
+        end
     end
   end
 end

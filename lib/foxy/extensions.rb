@@ -1,4 +1,4 @@
-require 'foxy/adverb'
+require "foxy/adverb"
 
 class Object
   def deep_symbolize_keys
@@ -21,7 +21,7 @@ class Hash
 
   def deep_merge(second)
     merger = proc { |_, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? v1.merge(v2, &merger) : v2 }
-    self.merge(second, &merger)
+    merge(second, &merger)
   end
 
   def recursive_hash
@@ -48,7 +48,7 @@ class Array
 end
 
 class NilClass
-  def try(*args)
+  def try(*_args)
     nil
   end
 end

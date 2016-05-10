@@ -3,8 +3,8 @@ module Foxy
     attr_accessor :html, :params
 
     def initialize(html, params)
-      @html=html
-      @params=params
+      @html = html
+      @params = params
     end
 
     def foxy
@@ -18,10 +18,10 @@ module Foxy
     protected
 
     def is_number(hash, key)
-      hash[key] = hash[key].try(:gsub, ",","").try(:to_i) if hash[key]
+      hash[key] = hash[key].try(:gsub, ",", "").try(:to_i) if hash[key]
     end
 
-    def is_list(hash, key, sep=/\s*,\s*/)
+    def is_list(hash, key, sep = /\s*,\s*/)
       return if hash[key].is_a? Array
       hash[key] = hash[key].to_s.split(sep)
     end

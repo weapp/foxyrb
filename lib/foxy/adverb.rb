@@ -23,12 +23,12 @@ module Foxy
     end
 
     def method_missing(m, *args, &block)
-      self.and_then { |instance| instance.public_send(m, *args, &block) }
+      and_then { |instance| instance.public_send(m, *args, &block) }
     end
   end
 
   Dangerously = Adverb.define do |&block|
-    block.call(value).tap{|result| raise "nil!" if result.nil? }
+    block.call(value).tap { |result| fail "nil!" if result.nil? }
   end
 
   Optional = Adverb.define do |&block|
@@ -36,15 +36,19 @@ module Foxy
   end
 
   Mapy = Adverb.define do |&block|
-    value.map{ |v| block.call(v) }
+    value.map { |v| block.call(v) }
   end
 
   Many = Adverb.define do |&block|
-    value.flat_map{ |v| block.call(v) }
+    value.flat_map { |v| block.call(v) }
   end
 
   Safy = Adverb.define do |&block|
-    block.call(value) rescue value
+    begin
+      block.call(value)
+    rescue
+      value
+    end
   end
 
   module Monads

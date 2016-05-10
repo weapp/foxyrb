@@ -1,8 +1,8 @@
 require "foxy/extensions"
-require 'foxy/rate_limit'
-require 'foxy/file_cache'
-require 'foxy/html_response'
-require 'patron'
+require "foxy/rate_limit"
+require "foxy/file_cache"
+require "foxy/html_response"
+require "patron"
 
 module Foxy
   class Client
@@ -59,28 +59,25 @@ module Foxy
     end
 
     def cache
-      @cache ||= FileCache.new(self.class.name.split('::').last.downcase)
+      @cache ||= FileCache.new(self.class.name.split("::").last.downcase)
     end
 
-    def fixed(id, legth=2, fill="0")
+    def fixed(id, legth = 2, fill = "0")
       id.to_s.rjust(legth, fill)
     end
 
     private
-    
+
     def raw_with_cache(options, cacheopts)
-      i = 0
-      begin
-        i += 1
-        return raw(options) unless cacheopts
-        cache.html(*cacheopts) { 
-          raw(options)
-            # .tap { |html| raise unless html.include?("title") }
-        }
-      rescue
-        return raw(options) if i > 9
-        retry
+      retries ||= 10
+      return raw(options) unless cacheopts
+      cache.html(*cacheopts) do
+        raw(options)
+        # .tap { |html| raise unless html.include?("title") }
       end
+    rescue
+      retry if (retries -= 1) != -1
+      raw(options)
     end
   end
 end

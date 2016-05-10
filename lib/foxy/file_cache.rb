@@ -5,7 +5,7 @@ module Foxy
     class << self
       attr_accessor :nocache
 
-      def nocache!(reason=nil)
+      def nocache!(reason = nil)
         self.nocache = true
         puts "NO CACHE: #{reason}"
         binding.pry
@@ -45,7 +45,7 @@ module Foxy
 
       private
 
-      def cache(path, format, force=false)
+      def cache(path, format, force = false)
         self.nocache = false
         path_tokens = path.map { |slice| slice.to_s.gsub(/[^a-z0-9\-]+/i, "_") }
                       .unshift("cache")

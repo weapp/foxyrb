@@ -67,7 +67,7 @@ module Foxy
     end
 
     def css(query)
-      return Collection.new([self]).css(query)
+      Collection.new([self]).css(query)
     end
 
     def find(**kws)
@@ -84,7 +84,7 @@ module Foxy
     end
 
     def comments
-      each_with_object([]) { |node, acc| acc << node.content.sub(/^<!--/,'').sub(/-->$/,'') if node.type == :comment }
+      each_with_object([]) { |node, acc| acc << node.content.sub(/^<!--/, "").sub(/-->$/, "") if node.type == :comment }
     end
 
     def joinedtexts
@@ -104,7 +104,7 @@ module Foxy
     end
 
     %i(src href title).each do |m|
-      define_method(m) { self.attr(m) }
+      define_method(m) { attr_reader(m) }
     end
   end
 end

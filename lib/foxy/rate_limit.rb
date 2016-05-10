@@ -1,6 +1,7 @@
 module Foxy
   module RateLimit
     private
+
     attr_reader :rate_limit
 
     def interval
