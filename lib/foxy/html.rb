@@ -7,6 +7,10 @@ module Foxy
   class Html < SimpleDelegator
     include Monads
 
+    def try(m, *a, &b)
+      public_send(m, *a, &b) if respond_to?(m)
+    end
+
     def initialize(html = nil)
       if html.nil?
         super([])
@@ -104,7 +108,7 @@ module Foxy
     end
 
     %i(src href title).each do |m|
-      define_method(m) { attr_reader(m) }
+      define_method(m) { self.attr(m) }
     end
   end
 end

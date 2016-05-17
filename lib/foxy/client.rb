@@ -1,8 +1,12 @@
+require "json"
+require "faraday"
+require 'faraday_middleware'
+require "patron"
+
 require "foxy/extensions"
 require "foxy/rate_limit"
 require "foxy/file_cache"
 require "foxy/html_response"
-require "patron"
 
 module Foxy
   class Client
@@ -69,14 +73,6 @@ module Foxy
     private
 
     def raw_with_cache(options, cacheopts)
-      retries ||= 10
-      return raw(options) unless cacheopts
-      cache.html(*cacheopts) do
-        raw(options)
-        # .tap { |html| raise unless html.include?("title") }
-      end
-    rescue
-      retry if (retries -= 1) != -1
       raw(options)
     end
   end

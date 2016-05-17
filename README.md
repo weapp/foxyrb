@@ -1,15 +1,13 @@
-# Foxytools
+# Foxy
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/foxytools`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+A set of `Foxy` tools for make easy retrieve information for another servers.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'foxytools', :git => 'git://github.com/weapp/foxytools.git'
+gem 'foxy', :git => 'git://github.com/weapp/foxyrb.git'
 ```
 
 And then execute:
@@ -18,17 +16,34 @@ And then execute:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+require "foxy"
+require "pp"
 
-## Development
+response = Foxy::Client.new.eraw(path: "https://www.w3.org/")
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+puts
+puts "Example1"
+puts "Way 1:"
+results = response.foxy.search(cls: "info-wrap")
+results.each do |result|
+    pp(summary: result.find(cls: "summary").try(:joinedtexts),
+       source: result.find(cls: "source").try(:joinedtexts),
+       where: result.find(cls: "location").try(:joinedtexts))
+end
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+puts "Way 2:"
+results = response.foxy.css(".info-wrap")
+results.each do |result|
+    pp(summary: result.css(".summary").first.try(:joinedtexts),
+       source: result.css(".source").first.try(:joinedtexts),
+       where: result.css(".location").first.try(:joinedtexts))
+end
+```
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/foxytools.
+Bug reports and pull requests are welcome on GitHub at https://github.com/weapp/foxy.
 
 
 ## License
