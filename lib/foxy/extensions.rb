@@ -1,4 +1,8 @@
-require "foxy/adverb"
+class Module
+  def forward(name, klass)
+    define_method(name) { |*args, &block| klass.call(self, *args, &block) }
+  end
+end
 
 class Object
   def deep_symbolize_keys
@@ -41,10 +45,6 @@ class Array
   def deep_symbolize_keys
     map(&:deep_symbolize_keys)
   end
-
-  def mapy
-    Foxy::Mapy.new(self)
-  end
 end
 
 class NilClass
@@ -58,3 +58,5 @@ class Enumerator::Yielder
     enum.each { |it| self << it }
   end
 end
+
+require "foxy/adverb"

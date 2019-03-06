@@ -6,6 +6,11 @@ module Foxy
       Class.new(self) { define_method(:and_then, &block) }
     end
 
+    def self.call(value, m=nil, *args, &block)
+      return new(value) unless m
+      new(value).and_then { |instance| instance.public_send(m, *args, &block) }
+    end
+
     def initialize(value)
       @value = value
     end
@@ -15,7 +20,7 @@ module Foxy
     end
 
     def then(&block)
-      self.class.new(&block)
+      self.class.new(and_then(&block))
     end
 
     def tap(*args, &block)
@@ -51,37 +56,30 @@ module Foxy
     end
   end
 
+  Thready = Adverb.define do |&block|
+    Thread.new { block.call(value) }
+  end
+
   module Monads
-    def safy
-      Safy.new(self)
-    end
-
-    def optionaly
-      Optional.new(self)
-    end
-
-    def mapy
-      Mapy.new(self)
-    end
-
-    def many
-      Many.new(self)
-    end
-
-    def dangerously
-      Dangerously.new(self)
-    end
-
-    def normally
-      Adverb.new(self)
-    end
+    forward :safy, Safy
+    forward :optionaly, Optional
+    forward :mapy, Mapy
+    forward :many, Many
+    forward :dangerously, Dangerously
+    forward :thready, Thready
+    forward :normally, Adverb
 
     def then
-      yield value
+      yield self
     end
 
-    def and_then
-      self
-    end
+    # def and_then
+    #   self
+    # end
   end
+end
+
+module Enumerable
+  forward :mapy, Foxy::Mapy
+  forward :many, Foxy::Many
 end

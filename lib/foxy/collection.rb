@@ -43,7 +43,7 @@ module Foxy
     end
 
     def clean(*args)
-      mapy.clean(*args)
+      mapy(:clean, *args)
     end
 
     private
