@@ -2,6 +2,8 @@ require "foxy/version"
 require "foxy/client"
 require "foxy/html"
 require "foxy/repository"
+require "foxy/field"
+require "foxy/model"
 
 module Foxy
   class << self
