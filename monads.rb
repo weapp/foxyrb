@@ -4,15 +4,16 @@ require 'bundler/setup'
 
 Bundler.require(:default)
 
-class Adverb
+class Adverb < BasicObject
   attr_accessor :value
 
   def self.define(&block)
-    Class.new(self) { define_method(:and_then, &block) }
+    ::Class.new(self) { define_method(:and_then, &block) }
   end
 
   def self.from_value(value)
-    value.is_a?(Adverb) ? value.then { |x| from_value(x) } : new(value)
+    # value.is_a?(::Adverb) ? value.then { |x| from_value(x) } : new(value)
+    new(value)
   end
 
   def initialize(value)
@@ -27,17 +28,17 @@ class Adverb
     self.class.new(and_then(&block))
   end
 
-  def tap(*args, &block)
-    method_missing(:tap, *args, &block)
-  end
+  # def tap(*args, &block)
+  #   method_missing(:tap, *args, &block)
+  # end
 
-  [:nil?, :===, :=~, :!~, :eql?, :hash, :<=>, :frozen?, :to_s, :tap, :display, :method,
-   :itself, :taint, :tainted?, :untaint, :untrust, :untrusted?, :trust, :freeze,
-   :to_enum, :enum_for, :==, :equal?, :!, :!=, :instance_eval, :instance_exec].each do |method|
-    define_method(method) do |*args, &block|
-      method_missing(method, *args, &block)
-    end
-  end
+  # [:nil?, :===, :=~, :!~, :eql?, :hash, :<=>, :frozen?, :to_s, :tap, :display, :method,
+  #  :itself, :taint, :tainted?, :untaint, :untrust, :untrusted?, :trust, :freeze,
+  #  :to_enum, :enum_for, :==, :equal?, :!, :!=, :instance_eval, :instance_exec].each do |method|
+  #   define_method(method) do |*args, &block|
+  #     method_missing(method, *args, &block)
+  #   end
+  # end
 
   def method_missing(m, *args, &block)
     self.and_then { |instance| instance.public_send(m, *args, &block) }
@@ -53,11 +54,19 @@ Optional = Adverb.define do |&block|
 end
 
 Mapy = Adverb.define do |&block|
-  value.map{ |v| block.call(v) }
+  if value.is_a?(::Array)
+    value.map{ |v| block.call(v) }
+  else
+    block.call(v)
+  end
 end
 
 Many = Adverb.define do |&block|
-  value.flat_map{ |v| block.call(v) }
+  if value.is_a?(::Array)
+    value.flat_map{ |v| block.call(v) }
+  else
+    block.call(v)
+  end
 end
 
 Safy = Adverb.define do |&block|
@@ -140,10 +149,15 @@ Hello.new.safy.tap { |value| raise "s" }
 [1, 2, 3].mapy + 1
 [1, 2, 3].mapy * 2
 
+1.mapy + 1
+1.mapy * 2
+
 [[1, 2, 3]].mapy * 2
 [[1, 2, 3], [4, 5, 6]].mapy.mapy * 2
 
-['Hello', 'world'].mapy.center(9).mapy.prepend('[').mapy.concat(']').join('-')
+['Hello', 'world'].mapy.center(15).mapy.prepend('[').mapy.concat(']').join('-')
+# ['Hello', 'world'].mmapy.center(15).prepend('[').concat(']').value!.join('-')
+['Hello', 'world'].mapy.and_then { |x| x.center(15).prepend('[').concat(']') }.join('-')
 
 ['many values', 'and others'].mapy.tap { |x| puts x }
 ['many values', 'and others'].mapy.tap(&method(:puts))

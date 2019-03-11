@@ -9,7 +9,7 @@ describe Foxy::Adverb do
 
     class Hello
       def hello
-        p "hello"
+        "hello"
       end
 
       def s
@@ -21,6 +21,10 @@ describe Foxy::Adverb do
       end
     end
 
+    def f(v)
+        "<#{v}>"
+    end
+
     a = Hello.new.optionaly.s.optionaly.hello
     b = Hello.new.optionaly(:s).optionaly(:hello)
     expect(a).to eq b
@@ -29,12 +33,12 @@ describe Foxy::Adverb do
     b = nil.optionaly(:s).optionaly(:hello)
     expect(a).to eq b
 
-    a = 1.optionaly.tap { |x| puts x }
-    b = 1.optionaly(:tap) { |x| puts x }
+    a = 1.optionaly.tap { |x| f x }
+    b = 1.optionaly(:tap) { |x| f x }
     expect(a).to eq b
 
-    a = nil.optionaly.tap { |x| puts x }
-    b = nil.optionaly(:tap) { |x| puts x }
+    a = nil.optionaly.tap { |x| f x }
+    b = nil.optionaly(:tap) { |x| f x }
     expect(a).to eq b
 
 
@@ -79,8 +83,8 @@ describe Foxy::Adverb do
     b = [[1, 2, 3]].mapy(:*, 2)
     expect(a).to eq b
 
-    a = [[1, 2, 3], [4, 5, 6]].mapy.mapy * 2
-    b = [[1, 2, 3], [4, 5, 6]].mapy.mapy(:*, 2)
+    a = [[1, 2, 3], [4, 5, 6]].mapy.mapy(:*, 2)
+    b = [[1, 2, 3], [4, 5, 6]].mapy(:mapy, :*, 2)
     expect(a).to eq b
 
 
@@ -89,12 +93,12 @@ describe Foxy::Adverb do
     expect(a).to eq b
 
 
-    a = ['many values', 'and others'].mapy.tap { |x| puts x }
-    b = ['many values', 'and others'].mapy(:tap) { |x| puts x }
+    a = ['many values', 'and others'].mapy.tap { |x| f x }
+    b = ['many values', 'and others'].mapy(:tap) { |x| f x }
     expect(a).to eq b
 
-    a = ['many values', 'and others'].mapy.tap(&method(:puts))
-    b = ['many values', 'and others'].mapy(:tap, &method(:puts))
+    a = ['many values', 'and others'].mapy.tap(&method(:f))
+    b = ['many values', 'and others'].mapy(:tap, &method(:f))
     expect(a).to eq b
 
 
@@ -137,32 +141,36 @@ describe Foxy::Adverb do
 
 
     # Chain!
+    a = ([1, 2, 3, nil].mapy.safy.mapy * 3).inspect
+    b = [1, 2, 3, nil].mapy(:safy, :*, 3).inspect
 
-    # a = [1, 2, 3, nil].mapy.safy * 3
-    # b = [1, 2, 3, nil].mapy(:safy, :*, 3)
-    # expect(a).to eq b
+    expect(a).to eq b
 
     a = [1, 2, 3, nil].mapy.and_then { |x| x.safy * 3 }
     b = [1, 2, 3, nil].mapy(:safy, :*, 3)
     expect(a).to eq b
 
 
-    a = [[1,2,3],[4,5,6]].many.mapy * 2
+    a = [[1,2,3],[4,5,6]].many.mapy.many * 2
     b = [[1,2,3],[4,5,6]].many(:mapy, :*, 2)
     expect(a).to eq b
 
 
-    a = [[1,2,3],[4,5,6]].mapy.many * 2
+    a = [[1,2,3],[4,5,6]].mapy.many.mapy * 2
     b = [[1,2,3],[4,5,6]].mapy(:many, :*, 2)
     expect(a).to eq b
 
 
-    a = [[[1],[2],[3]],[[4],[5],[6]]].many.mapy * 2
+    a = [[[1],[2],[3]],[[4],[5],[6]]].many.mapy.mapy * 2
     b = [[[1],[2],[3]],[[4],[5],[6]]].many(:mapy, :*, 2)
     expect(a).to eq b
 
 
-    a = [[[1],[2],[3]],[[4],[5],[6]]].mapy.many * 2
+    a = [[[1],[2],[3]],[[4],[5],[6]]].mapy.many.mapy * 2
+    b = [[[1],[2],[3]],[[4],[5],[6]]].mapy(:many, :*, 2)
+    expect(a).to eq b
+
+    a = [[[1],[2],[3]],[[4],[5],[6]]].mapy.and_then { |x| x.many * 2 }
     b = [[[1],[2],[3]],[[4],[5],[6]]].mapy(:many, :*, 2)
     expect(a).to eq b
 

@@ -1,14 +1,18 @@
 module Foxy
-  class Adverb
+  class Adverb < BasicObject
     attr_accessor :value
 
     def self.define(&block)
-      Class.new(self) { define_method(:and_then, &block) }
+      ::Class.new(self) { define_method(:and_then, &block) }
     end
 
-    def self.call(value, m=nil, *args, &block)
-      return new(value) unless m
-      new(value).and_then { |instance| instance.public_send(m, *args, &block) }
+    def self.[](*args, &block)
+      call(*args, &block)
+    end
+
+    def self.call(value, method_name=nil, *args, &block)
+      return new(value) unless method_name
+      new(value).method_missing(method_name, *args, &block)
     end
 
     def initialize(value)
@@ -20,15 +24,23 @@ module Foxy
     end
 
     def then(&block)
-      self.class.new(and_then(&block))
+      ::Object.instance_method(:class).bind(self).().new(and_then(&block))
     end
 
     def tap(*args, &block)
       method_missing(:tap, *args, &block)
     end
 
-    def method_missing(m, *args, &block)
-      and_then { |instance| instance.public_send(m, *args, &block) }
+    def inspect
+      ::Object.instance_method(:inspect).bind(self).()
+    end
+
+    # def to_s
+    # #   ::Object.instance_method(:to_s).bind(self).()
+    # end
+
+    def method_missing(method_name, *args, &block)
+      and_then { |instance| instance.public_send(method_name, *args, &block) }
     end
   end
 
