@@ -1,9 +1,18 @@
 module Foxy
-  class Adverb
+  class Adverb < BasicObject
     attr_accessor :value
 
     def self.define(&block)
-      Class.new(self) { define_method(:and_then, &block) }
+      ::Class.new(self) { define_method(:and_then, &block) }
+    end
+
+    def self.[](*args, &block)
+      call(*args, &block)
+    end
+
+    def self.call(value, method_name=nil, *args, &block)
+      return new(value) unless method_name
+      new(value).method_missing(method_name, *args, &block)
     end
 
     def initialize(value)
@@ -15,15 +24,23 @@ module Foxy
     end
 
     def then(&block)
-      self.class.new(&block)
+      ::Object.instance_method(:class).bind(self).().new(and_then(&block))
     end
 
     def tap(*args, &block)
       method_missing(:tap, *args, &block)
     end
 
-    def method_missing(m, *args, &block)
-      and_then { |instance| instance.public_send(m, *args, &block) }
+    def inspect
+      ::Object.instance_method(:inspect).bind(self).()
+    end
+
+    # def to_s
+    # #   ::Object.instance_method(:to_s).bind(self).()
+    # end
+
+    def method_missing(method_name, *args, &block)
+      and_then { |instance| instance.public_send(method_name, *args, &block) }
     end
   end
 
@@ -51,37 +68,30 @@ module Foxy
     end
   end
 
+  Thready = Adverb.define do |&block|
+    Thread.new { block.call(value) }
+  end
+
   module Monads
-    def safy
-      Safy.new(self)
-    end
-
-    def optionaly
-      Optional.new(self)
-    end
-
-    def mapy
-      Mapy.new(self)
-    end
-
-    def many
-      Many.new(self)
-    end
-
-    def dangerously
-      Dangerously.new(self)
-    end
-
-    def normally
-      Adverb.new(self)
-    end
+    forward :safy, Safy
+    forward :optionaly, Optional
+    forward :mapy, Mapy
+    forward :many, Many
+    forward :dangerously, Dangerously
+    forward :thready, Thready
+    forward :normally, Adverb
 
     def then
-      yield value
+      yield self
     end
 
-    def and_then
-      self
-    end
+    # def and_then
+    #   self
+    # end
   end
+end
+
+module Enumerable
+  forward :mapy, Foxy::Mapy
+  forward :many, Foxy::Many
 end
