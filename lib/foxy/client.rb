@@ -14,15 +14,18 @@ module Foxy
 
     attr_reader :conn, :config, :default_options
 
+    def self.config
+      @config ||= {}.recursive_hash
+    end
+
     def self.default_options
-      @default_options ||= {}.recursive_hash
+      config[:default_options]
     end
 
     def initialize(**config)
-      @config = config
-      @default_options = self.class.default_options
-                          .deep_merge(config.fetch(:default_options, {}))
-                          .recursive_hash
+      @config = self.class.config.deep_merge(config)
+
+      @default_options = @config.fetch(:default_options, {}).recursive_hash
 
       @conn = Faraday.new(url: url) do |connection|
         connection.options[:timeout] = config.fetch(:timeout, 120)
