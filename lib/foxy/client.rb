@@ -15,7 +15,7 @@ module Foxy
     attr_reader :conn, :config, :default_options
 
     def self.config
-      @config ||= {}.recursive_hash
+      @config ||= {}.deep_merge(ancestors[1].try(:config) || {}).recursive_hash
     end
 
     def self.default_options

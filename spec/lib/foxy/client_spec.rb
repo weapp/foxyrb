@@ -257,4 +257,32 @@ describe Foxy::Client do
       )
     end
   end
+
+  describe "subsubclient with api token" do
+    let(:subject) {
+      c = Class.new(Foxy::Client) do
+        self.default_options[:params][:api_token] = "my-secret-token"
+      end
+
+      d = Class.new(c) do
+        self.default_options[:params][:api_token2] = "my-secret-token2"
+      end
+
+      d.new(adapter: [:rack, MockHTTPBin], url: "https://httpbin.org", user_agent: "test-agent")
+    }
+
+    it "monadic responses" do
+      response = subject.json(path: "/get")
+      expect(response).to match(
+        "args" => {"api_token"=>"my-secret-token", "api_token2"=>"my-secret-token2"},
+        "headers" => {
+          "Accept" => "*/*",
+          "Host" => "httpbin.org",
+          "User-Agent" => "test-agent"
+        },
+        "origin" => String, # "127.0.0.1",
+        "url" => "https://httpbin.org/get?api_token=my-secret-token&api_token2=my-secret-token2"
+      )
+    end
+  end
 end
