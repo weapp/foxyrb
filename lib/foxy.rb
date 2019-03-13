@@ -1,9 +1,4 @@
 require "foxy/version"
-require "foxy/client"
-require "foxy/html"
-require "foxy/repository"
-require "foxy/field"
-require "foxy/model"
 
 module Foxy
   class << self
@@ -28,4 +23,18 @@ module Foxy
   INLINE_TAGS = %w(a abbr acronym b br code em font i
                    img ins kbd map samp small span strong
                    sub sup textarea).freeze
+
+  def self.file_adapters
+    @@adapters ||= {}
+  end
+
+  def self.default_file_adapter
+    @default_file_adapter || @@adapters[:fs]
+  end
+
+  def self.default_file_adapter=(value)
+    @default_file_adapter = value.is_a?(Symbol) ? file_adapters[value] : value
+  end
 end
+
+Dir["#{File.dirname(__FILE__)}/foxy/**/*.rb"].sort.each { |file| require file }

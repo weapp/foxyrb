@@ -1,4 +1,4 @@
-require "json"
+require "multi_json"
 require "faraday"
 require 'faraday_middleware'
 require "patron"
@@ -14,9 +14,15 @@ module Foxy
 
     attr_reader :conn, :config, :default_options
 
+    def self.default_options
+      @default_options ||= {}.recursive_hash
+    end
+
     def initialize(**config)
       @config = config
-      @default_options = config.fetch(:default_options, {}).recursive_hash
+      @default_options = self.class.default_options
+                          .deep_merge(config.fetch(:default_options, {}))
+                          .recursive_hash
 
       @conn = Faraday.new(url: url) do |connection|
         connection.options[:timeout] = config.fetch(:timeout, 120)
@@ -29,12 +35,15 @@ module Foxy
         # connection.response :json
         # connection.use FaradayMiddleware::Gzip
         # connection.adapter(Faraday.default_adapter)
-        connection.adapter(adapter)
+        connection.adapter(*adapter)
       end
     end
 
     def adapter
-      :patron
+      @config.fetch(
+        :adapter,
+        :patron
+      )
     end
 
     def user_agent
@@ -42,6 +51,10 @@ module Foxy
         :user_agent,
         "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
       )
+    end
+
+    def is_error?(response)
+      response.status >= 400
     end
 
     def request(**options)
@@ -53,31 +66,41 @@ module Foxy
       body = opts.fetch(:body, nil)
       params = opts.fetch(:params, nil)
       headers = opts.fetch(:headers, {})
+      monad_result = opts.fetch(:monad_result, false)
+      json = opts.fetch(:json, nil)
+      form = opts.fetch(:form, nil)
 
-      if body && json_request?
+      if body
+        body = body.to_s
+      elsif form
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+        body = URI.encode_www_form(form)
+      elsif json
         headers["Content-Type"] = "application/json"
-        body = body.to_json
+        body = MultiJson.dump(json)
       end
 
-      @conn.run_request(method_name, path, body, headers) do |request|
+      response = @conn.run_request(method_name, path, body, headers) do |request|
         request.params.update(params) if params
         yield(request) if block_given?
       end
+
+      return response unless monad_result
+      return Foxy.Error(response) if is_error?(response)
+      Foxy.Ok(response)
     end
 
-    def json_request?
-      @config.fetch(:json_request, true)
+    def json(**options)
+      MultiJson.load(raw(**options))
     end
 
-    def json(options)
-      JSON[raw(options)]
+    def raw(**options)
+      request(**options).body
     end
 
-    def raw(options)
-      request(options).body
-    end
-
-    def eraw(options)
+    # cache will recieve options and options[:cache]
+    # response will recieve response, options and options[:response_params]
+    def eraw(**options)
       cacheopts = options.delete(:cache)
       klass = options.delete(:class) || Foxy::HtmlResponse
       response_options = options.merge(options.delete(:response_params) || {})

@@ -1,85 +1,63 @@
+require "multi_json"
 require "yaml"
 
 module Foxy
   class FileCache
-    class << self
-      attr_accessor :nocache
+    ITSELF = :itself.to_proc.freeze
 
-      def nocache!(reason = nil)
-        self.nocache = true
-        puts "NO CACHE: #{reason}"
-        binding.pry
+    attr_accessor :store, :file_manager
+
+    def initialize(*path, adapter: nil)
+      @file_manager = Foxy::FileManagers::Manager.new(
+        namespace: clean_path(path).unshift("cache").join("/") + "/",
+        adapter: adapter
+      )
+      @store = true
+    end
+
+    def cache(path, format, miss: false, store: nil, dump: ITSELF, load: ITSELF, ext: format)
+      filepath = clean_path(path).join("/") + ".#{ext}"
+
+      readed = !miss && @file_manager.get(filepath)
+      return load.(readed) if readed
+
+      res = dump.(yield).to_s
+      @file_manager.put(filepath, res) if store.nil? ? self.store : store
+
+      load.(res)
+    end
+
+    def self.define(format:, **default_opts)
+      define_method(format) do |*path, **opts, &block|
+        cache(path, format, miss: false, **default_opts, **opts, &block)
       end
 
-      def html(*path, &block)
-        cache path, "html", &block
-      end
-
-      def raw(*path, &block)
-        cache path, "txt", &block
-      end
-
-      def json(*path)
-        JSON[cache(path, "json") { JSON[yield] }]
-      end
-
-      def yaml(*path)
-        YAML.load(cache(path, "yaml") { YAML.dump(yield) })
-      end
-
-      def html!(*path, &block)
-        cache! path, "html", &block
-      end
-
-      def raw!(*path, &block)
-        cache! path, "txt", &block
-      end
-
-      def json!(*path)
-        JSON[cache!(path, "json") { JSON[yield] }]
-      end
-
-      def yaml!(*path)
-        YAML.load(cache!(path, "yaml") { YAML.dump(yield) })
-      end
-
-      private
-
-      def cache(path, format, force = false)
-        self.nocache = false
-        path_tokens = path.map { |slice| slice.to_s.gsub(/[^a-z0-9\-]+/i, "_") }
-                      .unshift("cache")
-        filepath = path_tokens.join("/") + ".#{format}"
-
-        return File.read(filepath) if File.exist?(filepath) && !force
-
-        makedir_p(path_tokens[0...-1])
-        res = yield.to_s
-        File.write(filepath, res) unless nocache
-
-        res
-      end
-
-      def cache!(path, format, &block)
-        cache(path, format, true, &block)
-      end
-
-      def makedir_p(tokens)
-        1.upto(tokens.size) do |n|
-          dir = tokens[0...n].join("/")
-          Dir.mkdir(dir) unless Dir.exist?(dir)
-        end
+      define_method("#{format}!") do |*path, **opts, &block|
+        cache(path, format, miss: true, **default_opts, **opts, &block)
       end
     end
 
-    def initialize(*path)
-      @path = path
-    end
+    define(format: :html,
+           dump: ITSELF,
+           load: ITSELF)
 
-    %i(html raw json yaml html! raw! json! yaml!).each do |format|
-      define_method(format) do |*path, &block|
-        self.class.send(format, *(@path + path), &block)
-      end
+    define(format: :raw,
+           ext: "txt",
+           dump: ITSELF,
+           load: ITSELF)
+
+    define(format: :yaml,
+           dump: YAML.method(:dump),
+           load: YAML.method(:load))
+
+    define(format: :json,
+           dump: MultiJson.method(:dump),
+           load: MultiJson.method(:load))
+
+    private
+
+    def clean_path(path)
+      path.mapy.to_s.mapy.gsub(/[^a-z0-9\-]+/i, "_")
     end
   end
 end

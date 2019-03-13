@@ -1,3 +1,5 @@
+require "foxy/extensions"
+
 module Foxy
   class Adverb < BasicObject
     attr_accessor :value
