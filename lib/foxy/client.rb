@@ -14,7 +14,7 @@ module Foxy
 
     attr_reader :conn, :config, :default_options
 
-    def initialize(config = {})
+    def initialize(**config)
       @config = config
       @default_options = config.fetch(:default_options, {}).recursive_hash
 
@@ -24,23 +24,49 @@ module Foxy
         connection.headers[:user_agent] = user_agent
 
         connection.use(Faraday::Response::Middleware)
+        yield(connection) if block_given?
         # connection.response :logger
         # connection.response :json
         # connection.use FaradayMiddleware::Gzip
         # connection.adapter(Faraday.default_adapter)
-        connection.adapter :patron
+        connection.adapter(adapter)
       end
     end
 
-    def user_agent
-      "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
+    def adapter
+      :patron
     end
 
-    def request(options)
+    def user_agent
+      @config.fetch(
+        :user_agent,
+        "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
+      )
+    end
+
+    def request(**options)
       wait!
       opts = default_options.deep_merge(options)
 
-      conn.get(opts.fetch(:path), opts.fetch(:params, {}))
+      method_name = opts.fetch(:method, :get)
+      path = opts.fetch(:path, "/")
+      body = opts.fetch(:body, nil)
+      params = opts.fetch(:params, nil)
+      headers = opts.fetch(:headers, {})
+
+      if body && json_request?
+        headers["Content-Type"] = "application/json"
+        body = body.to_json
+      end
+
+      @conn.run_request(method_name, path, body, headers) do |request|
+        request.params.update(params) if params
+        yield(request) if block_given?
+      end
+    end
+
+    def json_request?
+      @config.fetch(:json_request, true)
     end
 
     def json(options)
@@ -59,7 +85,7 @@ module Foxy
     end
 
     def url
-      "http://www.example.com"
+      @config.fetch(:url, "http://www.example.com")
     end
 
     def cache
