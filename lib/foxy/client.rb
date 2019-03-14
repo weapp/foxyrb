@@ -10,9 +10,16 @@ require "foxy/html_response"
 
 module Foxy
   class Client
+    OPTIONS = %i[proxy ssl builder url parallel_manager params headers builder_class]
+    REQUEST = %i[params_encoder request_proxy bind timeout open_timeout write_timeout boundary oauth context]
+
     include RateLimit
 
-    attr_reader :conn, :config, :default_options, :options
+    attr_reader :connection, :config
+
+    def self.instance
+      @instance ||= new
+    end
 
     def self.config
       @config ||= {}.deep_merge(ancestors[1].try(:config) || {}).recursive_hash
@@ -24,34 +31,37 @@ module Foxy
       @configures
     end
 
-    def self.default_options
-      config[:default_options]
-    end
+    # def self.default_options
+    #   config[:default_options]
+    # end
 
-    def self.options
-      config[:options]
-    end
-
+    config[:rate_limit] = nil
     config[:adapter] = :patron
-    options[:request][:timeout] = 120
-    options[:request][:open_timeout] = 20
-    options[:headers][:user_agent] = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
-    options[:ssl][:verify] = true
-    options[:url] = "http:/"
-
-    configure do
-      options[:headers][:user_agent] = config[:user_agent] || try(:user_agent) || options[:headers][:user_agent]
-      options[:url] = config[:url] || try(:url) || options[:url]
-    end
+    config[:timeout] = 120
+    config[:open_timeout] = 20
+    config[:user_agent] = nil
+    config[:headers][:user_agent] = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
+    config[:ssl][:verify] = true
+    config[:url] = "http:/"
+    # request params
+    config[:method] = :get
+    config[:path] = ""
+    config[:body] = nil
+    config[:json] = nil
+    config[:form] = nil
+    config[:monad_result] = false
+    # config[:params] = {}
 
     def initialize(**kwargs)
-      @config = self.class.config.deep_merge(kwargs)
-      @default_options = config[:default_options]
-      @options = config[:options]
-
+      @config = self.class.config.deep_merge({})
+      # @default_options = config[:default_options]
       self.class.configure.each { |block| instance_eval(&block) }
+      @config = @config.deep_merge(kwargs)
 
-      @conn = Faraday.new(config[:options]) do |connection|
+      config[:headers][:user_agent] = try(:user_agent) || config[:user_agent] || config[:headers][:user_agent]
+      config[:url] = try(:url) || config[:url]
+
+      @connection = Faraday.new(options) do |connection|
         connection.use(Faraday::Response::Middleware)
         yield(connection) if block_given?
         # connection.response :logger
@@ -62,8 +72,17 @@ module Foxy
       end
     end
 
+    def options
+      config.slice(*OPTIONS).tap do |options|
+        request = config.slice(*REQUEST)
+        request_proxy = request.delete(:request_proxy)
+        request[:proxy] = request_proxy if !request_proxy || request_proxy != {}
+        options[:request] = request
+      end
+    end
+
     def rate_limit
-      config.fetch(:rate_limit, nil)
+      config[:rate_limit]
     end
 
     def is_error?(response)
@@ -72,16 +91,16 @@ module Foxy
 
     def request(**options)
       wait!
-      opts = default_options.deep_merge(options)
+      opts = config.deep_merge(options)
 
-      method_name = opts.fetch(:method, :get)
-      path = opts.fetch(:path, "/")
-      body = opts.fetch(:body, nil)
-      params = opts.fetch(:params, nil)
-      headers = opts.fetch(:headers, {})
-      monad_result = opts.fetch(:monad_result, false)
-      json = opts.fetch(:json, nil)
-      form = opts.fetch(:form, nil)
+      method_name = opts[:method]
+      path = opts[:path]
+      body = opts[:body]
+      params = opts[:params] # opts.fetch(:params, nil)
+      headers = opts[:headers]
+      monad_result = opts[:monad_result]
+      json = opts[:json]
+      form = opts[:form]
 
       if body
         body = body.to_s
@@ -93,7 +112,7 @@ module Foxy
         body = MultiJson.dump(json)
       end
 
-      response = @conn.run_request(method_name, path, body, headers) do |request|
+      response = @connection.run_request(method_name, path, body, headers) do |request|
         request.params.update(params) if params
         yield(request) if block_given?
       end

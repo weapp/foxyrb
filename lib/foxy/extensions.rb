@@ -33,7 +33,8 @@ class Hash
   end
 
   def slice(*keys)
-    Hash[keys.zip(values_at(*keys))]
+    # Hash[keys.zip(values_at(*keys))]
+    keys.each_with_object({}) { |k, h| key?(k) && h.store(k, self[k]) }
   end
 
   def downcase_keys

@@ -214,18 +214,18 @@ describe Foxy::Client do
     )
   end
 
-  describe "#conn" do
-    it("#options.timeout") { expect(subject.conn.options.timeout).to be 120 }
-    it("#options.open_timeout") { expect(subject.conn.options.open_timeout).to be 20 }
-    it("#headers['User-Agent']")  { expect(subject.conn.headers["User-Agent"]).to eq "test-agent" }
-    it("#ssl.verify")  { expect(subject.conn.ssl.verify).to be true }
-    it("#url_prefix.to_s") { expect(subject.conn.url_prefix.to_s).to eq "https://httpbin.org/" }
+  describe "#connection" do
+    it("#options.timeout") { expect(subject.connection.options.timeout).to be 120 }
+    it("#options.open_timeout") { expect(subject.connection.options.open_timeout).to be 20 }
+    it("#headers['User-Agent']")  { expect(subject.connection.headers["User-Agent"]).to eq "test-agent" }
+    it("#ssl.verify")  { expect(subject.connection.ssl.verify).to be true }
+    it("#url_prefix.to_s") { expect(subject.connection.url_prefix.to_s).to eq "https://httpbin.org/" }
   end
 
   describe "subclient with monad_result" do
     let(:subject) {
       c = Class.new(Foxy::Client) do
-        default_options[:monad_result] = true
+        config[:monad_result] = true
       end
 
       c.new(adapter: [:rack, MockHTTPBin], url: "https://httpbin.org", user_agent: "test-agent")
@@ -245,7 +245,7 @@ describe Foxy::Client do
   describe "subclient with api token" do
     let(:subject) {
       c = Class.new(Foxy::Client) do
-        default_options[:params][:api_token] = "my-secret-token"
+        config[:params][:api_token] = "my-secret-token"
       end
 
       c.new(adapter: [:rack, MockHTTPBin], url: "https://httpbin.org", user_agent: "test-agent")
@@ -269,11 +269,11 @@ describe Foxy::Client do
   describe "subsubclient with api token" do
     let(:subject) {
       c = Class.new(Foxy::Client) do
-        default_options[:params][:api_token] = "my-secret-token"
+        config[:params][:api_token] = "my-secret-token"
       end
 
       d = Class.new(c) do
-        default_options[:params][:api_token2] = "my-secret-token2"
+        config[:params][:api_token2] = "my-secret-token2"
       end
 
       d.new(adapter: [:rack, MockHTTPBin], url: "https://httpbin.org", user_agent: "test-agent")
