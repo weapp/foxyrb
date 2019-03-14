@@ -225,7 +225,7 @@ describe Foxy::Client do
   describe "subclient with monad_result" do
     let(:subject) {
       c = Class.new(Foxy::Client) do
-        self.default_options[:monad_result] = true
+        default_options[:monad_result] = true
       end
 
       c.new(adapter: [:rack, MockHTTPBin], url: "https://httpbin.org", user_agent: "test-agent")
@@ -245,7 +245,7 @@ describe Foxy::Client do
   describe "subclient with api token" do
     let(:subject) {
       c = Class.new(Foxy::Client) do
-        self.default_options[:params][:api_token] = "my-secret-token"
+        default_options[:params][:api_token] = "my-secret-token"
       end
 
       c.new(adapter: [:rack, MockHTTPBin], url: "https://httpbin.org", user_agent: "test-agent")
@@ -269,11 +269,11 @@ describe Foxy::Client do
   describe "subsubclient with api token" do
     let(:subject) {
       c = Class.new(Foxy::Client) do
-        self.default_options[:params][:api_token] = "my-secret-token"
+        default_options[:params][:api_token] = "my-secret-token"
       end
 
       d = Class.new(c) do
-        self.default_options[:params][:api_token2] = "my-secret-token2"
+        default_options[:params][:api_token2] = "my-secret-token2"
       end
 
       d.new(adapter: [:rack, MockHTTPBin], url: "https://httpbin.org", user_agent: "test-agent")

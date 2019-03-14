@@ -12,10 +12,16 @@ module Foxy
   class Client
     include RateLimit
 
-    attr_reader :conn, :config, :default_options
+    attr_reader :conn, :config, :default_options, :options
 
     def self.config
       @config ||= {}.deep_merge(ancestors[1].try(:config) || {}).recursive_hash
+    end
+
+    def self.configure
+      @configures ||= (ancestors[1].try(:configure) || []).dup
+      @configures << Proc.new if block_given?
+      @configures
     end
 
     def self.default_options
@@ -33,13 +39,17 @@ module Foxy
     options[:ssl][:verify] = true
     options[:url] = "http:/"
 
+    configure do
+      options[:headers][:user_agent] = config[:user_agent] || try(:user_agent) || options[:headers][:user_agent]
+      options[:url] = config[:url] || try(:url) || options[:url]
+    end
+
     def initialize(**kwargs)
       @config = self.class.config.deep_merge(kwargs)
       @default_options = config.fetch(:default_options, {})
+      @options = config[:options]
 
-      options = config[:options]
-      options[:headers][:user_agent] = config[:user_agent] || try(:user_agent) || options[:headers][:user_agent]
-      options[:url] = config[:url] || try(:url) || options[:url]
+      self.class.configure.each { |block| instance_eval(&block) }
 
       @conn = Faraday.new(config[:options]) do |connection|
         connection.use(Faraday::Response::Middleware)
