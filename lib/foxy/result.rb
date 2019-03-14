@@ -7,16 +7,12 @@ module Foxy
         @status = status
       end
 
-      def then
-        self
-      end
-
-      def catch
-        self
-      end
+      alias then itself
+      alias catch itself
 
       def always
-        wrap_response(yield(data||error))
+        response = yield(value!)
+        response.is_a?(Status) ? response : self.class.new(response)
       end
 
       def ok?
@@ -27,10 +23,8 @@ module Foxy
         status == :error
       end
 
-      private
-
-      def wrap_response(response)
-        respose.is_a?(Status) ? response : self.class.new(response)
+      def value!
+        data.nil? ? error : data
       end
     end
 
@@ -40,9 +34,7 @@ module Foxy
         @data = data
       end
 
-      def then
-        wrap_response(yield(data))
-      end
+      alias then always
     end
 
     class Error < Status
@@ -51,9 +43,7 @@ module Foxy
         @error = error
       end
 
-      def catch
-        wrap_response(yield(error))
-      end
+      alias catch always
     end
   end
 

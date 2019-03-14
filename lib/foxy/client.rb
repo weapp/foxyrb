@@ -22,38 +22,38 @@ module Foxy
       config[:default_options]
     end
 
-    def initialize(**config)
-      @config = self.class.config.deep_merge(config)
+    def self.options
+      config[:options]
+    end
 
-      @default_options = @config.fetch(:default_options, {}).recursive_hash
+    config[:adapter] = :patron
+    options[:request][:timeout] = 120
+    options[:request][:open_timeout] = 20
+    options[:headers][:user_agent] = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
+    options[:ssl][:verify] = true
+    options[:url] = "http:/"
 
-      @conn = Faraday.new(url: url) do |connection|
-        connection.options[:timeout] = config.fetch(:timeout, 120)
-        connection.options[:open_timeout] = config.fetch(:open_timeout, 20)
-        connection.headers[:user_agent] = user_agent
+    def initialize(**kwargs)
+      @config = self.class.config.deep_merge(kwargs)
+      @default_options = config.fetch(:default_options, {})
 
+      options = config[:options]
+      options[:headers][:user_agent] = config[:user_agent] || try(:user_agent) || options[:headers][:user_agent]
+      options[:url] = config[:url] || try(:url) || options[:url]
+
+      @conn = Faraday.new(config[:options]) do |connection|
         connection.use(Faraday::Response::Middleware)
         yield(connection) if block_given?
         # connection.response :logger
         # connection.response :json
         # connection.use FaradayMiddleware::Gzip
         # connection.adapter(Faraday.default_adapter)
-        connection.adapter(*adapter)
+        connection.adapter(*config[:adapter])
       end
     end
 
-    def adapter
-      @config.fetch(
-        :adapter,
-        :patron
-      )
-    end
-
-    def user_agent
-      @config.fetch(
-        :user_agent,
-        "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
-      )
+    def rate_limit
+      config.fetch(:rate_limit, nil)
     end
 
     def is_error?(response)
@@ -108,10 +108,6 @@ module Foxy
       klass = options.delete(:class) || Foxy::HtmlResponse
       response_options = options.merge(options.delete(:response_params) || {})
       klass.new(raw_with_cache(options, cacheopts), response_options)
-    end
-
-    def url
-      @config.fetch(:url, "http://www.example.com")
     end
 
     def cache
