@@ -46,7 +46,7 @@ module Foxy
 
     def initialize(**kwargs)
       @config = self.class.config.deep_merge(kwargs)
-      @default_options = config.fetch(:default_options, {})
+      @default_options = config[:default_options]
       @options = config[:options]
 
       self.class.configure.each { |block| instance_eval(&block) }
