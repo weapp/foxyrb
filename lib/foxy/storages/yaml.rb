@@ -36,7 +36,7 @@ module Foxy
       end
 
       def destroy_all
-        File.delete store.path if File.exist? store.path
+        File.delete(store.path) if File.exist?(store.path)
         @store = nil
 
         true

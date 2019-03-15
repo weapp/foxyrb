@@ -8,7 +8,7 @@ module Foxy
       def initialize(_opts = {}); end
 
       def put(path, input)
-        FileUtils.mkdir_p File.dirname path
+        FileUtils.mkdir_p(File.dirname(path))
         IO.copy_stream(input, path)
       end
 
@@ -19,8 +19,8 @@ module Foxy
       end
 
       def delete(path)
-        return File.unlink path if File.ftype(path) == "file"
-        return FileUtils.rm_rf path if File.ftype(path) == "directory"
+        return File.unlink(path) if File.ftype(path) == "file"
+        return FileUtils.rm_rf(path) if File.ftype(path) == "directory"
       end
     end
 

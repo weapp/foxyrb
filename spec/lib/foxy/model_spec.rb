@@ -128,8 +128,8 @@ describe Foxy::Model do
       it { expect(klass.create(params)).to eql klass.all.first }
 
       it do
-       expect(klass.find_or_create(params)).to eql klass.find_or_create(params)
-       expect(klass.all.count).to eq 1
+        expect(klass.find_or_create(params)).to eql klass.find_or_create(params)
+        expect(klass.all.count).to eq 1
       end
 
       it do
@@ -158,8 +158,8 @@ describe Foxy::Model do
       it { expect(klass.create(params)).to eql klass.all.first }
 
       it do
-       expect(klass.find_or_create(params)).to eql klass.find_or_create(params)
-       expect(klass.all.count).to eq 1
+        expect(klass.find_or_create(params)).to eql klass.find_or_create(params)
+        expect(klass.all.count).to eq 1
       end
 
       it do

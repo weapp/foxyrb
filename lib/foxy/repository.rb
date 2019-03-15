@@ -17,35 +17,35 @@ module Foxy
     end
 
     def find_or_create(entity)
-      deserialize find_or_create! serialize entity
+      deserialize(find_or_create!(serialize(entity)))
     end
 
     def find(id)
-      deserialize find! id
+      deserialize(find!(id))
     end
 
     def all
-      deserialize_collection store.all
+      deserialize_collection(store.all)
     end
 
     def where(query = {})
-      deserialize_collection where!(query)
+      deserialize_collection(where!(query))
     end
 
     def create(entity)
-      deserialize create! serialize entity
+      deserialize(create!(serialize(entity)))
     end
 
     def update(entity, attrs)
-      deserialize update! (serialize entity), attrs
+      deserialize(update!(serialize(entity), attrs))
     end
 
     def save(entity)
-      deserialize save! serialize entity
+      deserialize(save!(serialize(entity)))
     end
 
     def destroy(entity)
-      destroy! serialize entity
+      destroy!(serialize(entity))
     end
 
     def destroy_all
@@ -67,6 +67,7 @@ module Foxy
 
     def deserialize(hash)
       return if hash.nil?
+
       type = hash.delete(class_key)
       klass = (model || Object.const_get(type))
       klass.try([:from_database, hash], [:new, hash])
@@ -81,7 +82,7 @@ module Foxy
     end
 
     def create!(attrs)
-      store.add attrs
+      store.add(attrs)
     end
 
     def find!(id)
@@ -93,8 +94,8 @@ module Foxy
     end
 
     def save!(attrs)
-      destroy! attrs
-      create! attrs
+      destroy!(attrs)
+      create!(attrs)
     end
 
     def update!(attrs, more)

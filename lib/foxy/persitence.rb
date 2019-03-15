@@ -52,11 +52,25 @@ module Foxy
                                        class_key: class_key)
       end
 
-      def find(primary_key); repository.find(primary_key); end
-      def find_or_create(attrs); repository.find_or_create(attrs); end
-      def create(attrs); repository.create(attrs); end
-      def all; repository.all; end
-      def destroy_all; repository.destroy_all; end
+      def find(primary_key)
+        repository.find(primary_key)
+      end
+
+      def find_or_create(attrs)
+        repository.find_or_create(attrs)
+      end
+
+      def create(attrs)
+        repository.create(attrs)
+      end
+
+      def all
+        repository.all
+      end
+
+      def destroy_all
+        repository.destroy_all
+      end
     end
 
     def from_database(attrs)
@@ -83,7 +97,7 @@ module Foxy
     end
 
     def primary_key
-      send self.class.primary_key
+      send(self.class.primary_key)
     end
 
     def update(attrs)

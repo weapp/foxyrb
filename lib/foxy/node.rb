@@ -12,11 +12,11 @@ module Foxy
     end
 
     def tag?
-      %i[tag singletag].include? type
+      %i[tag singletag].include?(type)
     end
 
     def closetag?
-      %i[closetag singletag].include? type
+      %i[closetag singletag].include?(type)
     end
 
     def tagname
@@ -40,7 +40,7 @@ module Foxy
     end
 
     def clean(translate_table: {}, allow: ALLOW)
-      if %i[tag singletag closetag].include? type
+      if %i[tag singletag closetag].include?(type)
         name = extra[0].downcase
         slash1 = tag? ? "" : "/"
         slash2 = tag? && closetag? ? "/" : ""
@@ -69,7 +69,7 @@ module Foxy
         id &&= id[1].gsub(/\A('|")*|('|")*\Z/, "")
         cls = RE_TAG_CLS.match(tag)
         cls = cls && cls[1].gsub(/\A('|")*|('|")*\Z/, "").split || []
-        if SINGLES.include? tagname
+        if SINGLES.include?(tagname)
           Node.new(:singletag, tag, [tagname, id, cls])
         else
           Node.new(:tag, tag, [tagname, id, cls])
