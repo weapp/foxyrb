@@ -59,15 +59,17 @@ module Foxy
     end
 
     def serialize(entity)
-      return entity.merge(class_key => model.name) if model && entity.is_a?(Hash)
+      return entity.as_json.merge(class_key => model.name) if model && entity.is_a?(Hash)
       raise "#{entity} is not a #{model.class}" if model && !entity.is_a?(model)
 
-      entity.serializable_hash.deep_symbolize_keys.merge(class_key => entity.class.name)
+      entity.as_json.merge(class_key => entity.class.name)
     end
 
     def deserialize(hash)
+      return if hash.nil?
       type = hash.delete(class_key)
-      (model || Object.const_get(type)).new(hash)
+      klass = (model || Object.const_get(type))
+      klass.try([:from_database, hash], [:new, hash])
     end
 
     def deserialize_collection(collection)

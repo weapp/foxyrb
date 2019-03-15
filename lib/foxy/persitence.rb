@@ -8,6 +8,7 @@ module Foxy
 
     module ClassMethods
       def primary_key=(key)
+        @repo = nil
         @primary_key = key.to_s
       end
 
@@ -20,39 +21,46 @@ module Foxy
         end
       end
 
-      def store
-        @store ||= YAML::Store.new "db/#{model_name}.store.yaml"
+      def model_name=(val)
+        @repo = nil
+        super
       end
 
-      def find(primary_key)
-        data = store.transaction { store[primary_key] }
-
-        return unless data
-
-        new(data, persisted: true)
+      def storage=(val)
+        @repo = nil
+        @storage = val
       end
 
-      def find_or_create(attrs)
-        find(new(attrs, persisted: true).primary_key) || create(attrs)
+      def storage
+        @storage ||= Foxy::Storages::Yaml
       end
 
-      def create(attrs)
-        new(attrs).tap(&:save)
+      def class_key=(val)
+        @repo = nil
+        @class_key = val
       end
 
-      def all
-        store.transaction { store.roots.map { |primary_key| new(store[primary_key], persisted: true) } }
+      def class_key
+        @class_key ||= :class
       end
 
-      # def by(attrs)
-      #   store.transaction { store.roots.map { |primary_key| new(store[primary_key], persisted: true) } }
-      # end
-
-      def destroy_all
-        File.delete store.path if File.exist? store.path
-
-        true
+      def repository
+        @repo ||= Foxy::Repository.new(collection: model_name,
+                                       pk: primary_key,
+                                       storage: storage,
+                                       model: self,
+                                       class_key: class_key)
       end
+
+      def find(primary_key); repository.find(primary_key); end
+      def find_or_create(attrs); repository.find_or_create(attrs); end
+      def create(attrs); repository.create(attrs); end
+      def all; repository.all; end
+      def destroy_all; repository.destroy_all; end
+    end
+
+    def from_database(attrs)
+      new(attrs, persisted: true)
     end
 
     def initialize(attrs, persisted: false)
@@ -60,19 +68,18 @@ module Foxy
       @persisted = persisted
     end
 
-    def store
-      self.class.store
+    def repository
+      self.class.repository
     end
 
     def save
       @persisted = true
-      store.transaction { store[primary_key] = attributes }
-
+      repository.save(self)
       self
     end
 
     def destroy
-      store.transaction { store.delete(primary_key) }
+      repository.destroy(self)
     end
 
     def primary_key

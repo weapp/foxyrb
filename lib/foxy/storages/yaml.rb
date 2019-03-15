@@ -35,7 +35,7 @@ module Foxy
         store.transaction { all!.select(&query(attrs)).each(&block) }
       end
 
-      def delete_all
+      def destroy_all
         File.delete store.path if File.exist? store.path
         @store = nil
 
@@ -64,7 +64,7 @@ module Foxy
       end
 
       def store!
-        FileUtils.makedir_p(store_folder.split("/"))
+        FileUtils.mkdir_p(store_folder)
         YAML::Store.new(path).tap { |s| s.transaction { s[:items] ||= [] } }
       end
 

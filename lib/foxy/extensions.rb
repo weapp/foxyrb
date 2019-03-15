@@ -11,8 +11,15 @@ class Object
     self
   end
 
-  def try(m, *a, &b)
-    public_send(m, *a, &b) if respond_to?(m)
+  def try(meth, *args, &block)
+    if meth.is_a?(Array)
+      [meth, *args].each do |m, *a|
+        return public_send(m, *a, &block) if respond_to?(m)
+      end
+      nil
+    else
+      public_send(meth, *args, &block) if respond_to?(meth)
+    end
   end
 
   def as_json(options = nil) #:nodoc:
