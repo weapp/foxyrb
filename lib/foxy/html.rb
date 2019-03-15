@@ -9,10 +9,6 @@ module Foxy
   class Html < SimpleDelegator
     include Monads
 
-    def try(m, *a, &b)
-      public_send(m, *a, &b) if respond_to?(m)
-    end
-
     def initialize(html = nil)
       if html.nil?
         super([])

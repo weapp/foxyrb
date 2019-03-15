@@ -150,8 +150,8 @@ describe Foxy::Adverb do
                      end
     expect(a).to eq b
 
-    a = (r = ["h", "e", "l", "l", "o"]; r.dangerously.uniq!)
-    b = (r = ["h", "e", "l", "l", "o"]; r.dangerously(:uniq!))
+    a = (r = %w[h e l l o]; r.dangerously.uniq!)
+    b = (r = %w[h e l l o]; r.dangerously(:uniq!))
     expect(a).to eq b
 
     # Chain!

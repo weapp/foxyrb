@@ -2,11 +2,22 @@
 
 module Foxy
   class Model
-    attr_accessor :attributes
+    extend Forwardable
+    attr_accessor :reader
 
     class << self
+      def with_persistence!
+        include Foxy::Persistence
+      end
+
+      def model_name
+        @model_name ||= name.downcase.gsub("::", "__")
+      end
+
+      attr_writer :model_name
+
       def fields
-        @fields ||= {}
+        @fields ||= (ancestors[1].try(:fields) || {}).deep_clone
       end
 
       def field(field_name, type = :string, default: nil)
@@ -30,34 +41,91 @@ module Foxy
       end
 
       def from_json(str)
-        new(JSON.load(str))
+        new(MultiJson.load(str))
       end
     end
 
     def initialize(attrs = {})
-      attrs = attrs.respond_to?(:as_json) ? attrs.as_json : attrs
-      self.attributes = self.class.desymbolize_keys(attrs)
+      self.attributes = attrs.respond_to?(:as_json) ? attrs.as_json : attrs
     end
 
     def eql?(other)
-      self.class.equal?(other.class) && other.attributes == attributes
+      self.class.equal?(other.class) && attributes == other.attributes
     end
 
-    def as_json(**opts)
-      base = @attributes.dup
-      base.merge!(Hash[opts[:methods].map { |k| [k, send(k)] }]) if opts[:methods]
-      base
+    def as_json(options = nil)
+      options ||= {}
+
+      attribute_names = attributes.keys
+      if only = options[:only]
+        attribute_names &= Array(only).map(&:to_s)
+      elsif except = options[:except]
+        attribute_names -= Array(except).map(&:to_s)
+      end
+
+      hash = {}
+      attribute_names.each { |n| hash[n] = @attributes[n].as_json }
+
+      Array(options[:methods]).each { |m| hash[m.to_s] = send(m) if respond_to?(m) }
+
+      serializable_add_includes(options) do |association, records, opts|
+        hash[association.to_s] = if records.respond_to?(:to_ary)
+                                   records.to_ary.map { |a| a.as_json(opts) }
+                                 else
+                                   records.as_json(opts)
+        end
+      end
+
+      hash
+    end
+
+    def serializable_add_includes(options = {}) #:nodoc:
+      return unless includes = options[:include]
+
+      unless includes.is_a?(Hash)
+        includes = Hash[Array(includes).map { |n| n.is_a?(Hash) ? n.to_a.first : [n, {}] }]
+      end
+
+      includes.each do |association, opts|
+        if records = send(association)
+          yield association, records, opts
+        end
+      end
     end
 
     def to_json(**opts)
-      as_json(**opts).to_json
+      MultiJson.dump(as_json(**opts))
+    end
+
+    def attributes
+      @attributes.dup
     end
 
     def attributes=(raw)
       @attributes = {}
+      assign_attributes(raw, all: true)
+    end
+
+    def assign_attributes(raw, all: false)
+      raw = self.class.desymbolize_keys(raw)
+      return @attributes.merge!(raw) if self.class.fields == {}
+
       self.class.fields.each do |key, field|
-        @attributes[key] = field.cast(raw.fetch(key, field.default))
+        if all
+          @attributes[key] = field.cast(raw.fetch(key, field.default))
+        else
+          @attributes[key] = field.cast(raw[key]) if raw.key?(key)
+        end
       end
+
+      self
+    end
+
+    def method_missing(method, *args)
+      return super unless ::Object.instance_method(:class).bind(self).call.fields == {}
+      return super unless args.empty?
+
+      attributes[method.to_s]
     end
   end
 end

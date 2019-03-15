@@ -14,6 +14,14 @@ class Object
   def try(m, *a, &b)
     public_send(m, *a, &b) if respond_to?(m)
   end
+
+  def as_json(options = nil) #:nodoc:
+    if respond_to?(:to_hash)
+      to_hash.as_json(options)
+    else
+      instance_values.as_json(options)
+    end
+  end
 end
 
 class Hash
@@ -50,6 +58,23 @@ class Hash
       end
     end
   end
+
+  def as_json(options = nil) #:nodoc:
+    # create a subset of the hash by applying :only or :except
+    subset = if options
+               if attrs = options[:only]
+                 slice(*Array(attrs))
+               elsif attrs = options[:except]
+                 except(*Array(attrs))
+               else
+                 self
+               end
+             else
+               self
+    end
+
+    Hash[subset.map { |k, v| [k.to_s, options ? v.as_json(options.dup) : v.as_json] }]
+  end
 end
 
 class Array
@@ -60,17 +85,43 @@ class Array
   def deep_clone
     map { |val| val.is_a?(Array) || val.is_a?(Hash) ? val.deep_clone : val }
   end
+
+  def as_json(options = nil) #:nodoc:
+    map { |v| options ? v.as_json(options.dup) : v.as_json }
+  end
 end
 
 class NilClass
   def try(*_args)
     nil
   end
+
+  def as_json(_options = nil) #:nodoc:
+    self
+  end
 end
 
 class Enumerator::Yielder
   def +(enum)
     enum.each { |it| self << it }
+  end
+end
+
+class BigDecimal
+  def as_json(_options = nil) #:nodoc:
+    finite? ? to_s : nil
+  end
+end
+
+class Integer
+  def as_json(_options = nil) #:nodoc:
+    self
+  end
+end
+
+class String
+  def as_json(_options = nil) #:nodoc:
+    self
   end
 end
 
