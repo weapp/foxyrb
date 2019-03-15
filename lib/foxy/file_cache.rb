@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "multi_json"
 require "yaml"
 
@@ -19,12 +21,12 @@ module Foxy
       filepath = clean_path(path).join("/") + ".#{ext}"
 
       readed = !miss && @file_manager.get(filepath)
-      return load.(readed) if readed
+      return load.call(readed) if readed
 
-      res = dump.(yield).to_s
+      res = dump.call(yield).to_s
       @file_manager.put(filepath, res) if store.nil? ? self.store : store
 
-      load.(res)
+      load.call(res)
     end
 
     def self.define(format:, **default_opts)

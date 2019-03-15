@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Foxy
   class HtmlResponse
     attr_accessor :html, :params
@@ -12,7 +14,7 @@ module Foxy
     end
 
     def clean
-      @clean ||= foxy.clean(allow: %w(alt src href title class))
+      @clean ||= foxy.clean(allow: %w[alt src href title class])
     end
 
     protected
@@ -23,6 +25,7 @@ module Foxy
 
     def is_list(hash, key, sep = /\s*,\s*/)
       return if hash[key].is_a? Array
+
       hash[key] = hash[key].to_s.split(sep)
     end
   end

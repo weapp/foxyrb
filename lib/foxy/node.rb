@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "delegate"
 
 module Foxy
@@ -10,11 +12,11 @@ module Foxy
     end
 
     def tag?
-      [:tag, :singletag].include? type
+      %i[tag singletag].include? type
     end
 
     def closetag?
-      [:closetag, :singletag].include? type
+      %i[closetag singletag].include? type
     end
 
     def tagname
@@ -38,12 +40,12 @@ module Foxy
     end
 
     def clean(translate_table: {}, allow: ALLOW)
-      if [:tag, :singletag, :closetag].include? type
+      if %i[tag singletag closetag].include? type
         name = extra[0].downcase
         slash1 = tag? ? "" : "/"
-        slash2 = (tag? && closetag?) ? "/" : ""
+        slash2 = tag? && closetag? ? "/" : ""
         allow.each do |attr_name|
-          attr_value = attr(attr_name)
+          attr_value = attr_reader(attr_name)
           slash2 = " #{attr_name}=\"#{attr_value}\"#{slash2}" if attr_value
         end
         name = translate_table.fetch(name, name)

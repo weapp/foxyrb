@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 def as_s(buffer)
@@ -5,8 +7,9 @@ def as_s(buffer)
 end
 
 describe Foxy::FileManagers::Manager do
-  [:memory, :fs, :s3].each do |adapter|
+  %i[memory fs s3].each do |adapter|
     next if adapter == :s3 && !ENV["BUCKET"]
+
     context "Adapter: #{adapter}" do
       subject do
         described_class.new(adapter: adapter,

@@ -1,4 +1,6 @@
-require 'yaml/store'
+# frozen_string_literal: true
+
+require "yaml/store"
 
 module Foxy
   module Storages
@@ -22,11 +24,11 @@ module Foxy
       end
 
       def delete(attrs)
-        store.transaction {
+        store.transaction do
           before = all!.count
           all!.delete_if(&query(attrs))
           before - all!.count
-        }
+        end
       end
 
       def update(attrs, &block)
@@ -51,9 +53,10 @@ module Foxy
       end
 
       def query(attrs)
-        keys, values = attrs.keys, attrs.values
+        keys = attrs.keys
+        values = attrs.values
 
-        Proc.new { |item| item.values_at(*keys) == values }
+        proc { |item| item.values_at(*keys) == values }
       end
 
       def all!

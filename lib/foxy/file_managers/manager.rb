@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Foxy
   module FileManagers
     class Manager
@@ -40,7 +42,7 @@ module Foxy
 
       def delete(path)
         @adapter.delete(extend_path(path))
-      rescue
+      rescue StandardError
         nil
       end
 
@@ -56,9 +58,11 @@ module Foxy
 
       def self.as_s(buffer)
         return unless buffer
+
         buffer.rewind if buffer.respond_to?(:rewind)
         return buffer.read if buffer.respond_to?(:read)
         return buffer.each.to_a.join if buffer.respond_to?(:each)
+
         buffer.to_s
       end
     end

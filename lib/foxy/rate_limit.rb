@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Foxy
   module RateLimit
     private
@@ -10,6 +12,7 @@ module Foxy
 
     def wait!
       return unless rate_limit
+
       @last ||= 0
       delta = interval - (Time.now.to_f - @last.to_f)
       sleep(delta) if delta > 0

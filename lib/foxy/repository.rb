@@ -1,6 +1,8 @@
-require 'yaml/store'
+# frozen_string_literal: true
 
-require 'foxy/storages/yaml'
+require "yaml/store"
+
+require "foxy/storages/yaml"
 
 module Foxy
   class Repository
@@ -26,7 +28,7 @@ module Foxy
       deserialize_collection store.all
     end
 
-    def where(query={})
+    def where(query = {})
       deserialize_collection where!(query)
     end
 
@@ -56,19 +58,20 @@ module Foxy
       @store ||= storage.new(collection)
     end
 
-    def serialize entity
+    def serialize(entity)
       return entity.merge(class_key => model.name) if model && entity.is_a?(Hash)
       raise "#{entity} is not a #{model.class}" if model && !entity.is_a?(model)
+
       entity.serializable_hash.deep_symbolize_keys.merge(class_key => entity.class.name)
     end
 
-    def deserialize hash
+    def deserialize(hash)
       type = hash.delete(class_key)
       (model || Object.const_get(type)).new(hash)
     end
 
     def deserialize_collection(collection)
-      collection.map{ |e| deserialize(e) }
+      collection.map { |e| deserialize(e) }
     end
 
     def where!(query)
@@ -105,7 +108,7 @@ module Foxy
     end
 
     def class_name
-      self.class.name.split('::').last
+      self.class.name.split("::").last
     end
   end
 end

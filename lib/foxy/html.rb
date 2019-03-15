@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "delegate"
 require "foxy/adverb"
 require "foxy/collection"
@@ -57,6 +59,7 @@ module Foxy
         y -= 1 if y > 0 && node.closetag? && node.tagname! == close_tagname
 
         next unless buff && y.zero?
+
         yield Html.new(buff)
         buff = []
         close_tagname = nil
@@ -65,6 +68,7 @@ module Foxy
 
     def search(**kws)
       return Collection.new([self]).search(kws) if kws[:css]
+
       list = []
       isearch(**kws) { |val| list << val unless val.empty? }
       Collection.new(list)
@@ -107,8 +111,8 @@ module Foxy
       rebuild
     end
 
-    %i(src href title).each do |m|
-      define_method(m) { self.attr(m) }
+    %i[src href title].each do |m|
+      define_method(m) { attr_reader(m) }
     end
   end
 end

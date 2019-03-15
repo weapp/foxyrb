@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require "fileutils"
 
 module Foxy
   module FileManagers
     class FS
-      def initialize(_opts = {})
-      end
+      def initialize(_opts = {}); end
 
       def put(path, input)
         FileUtils.mkdir_p File.dirname path
@@ -13,6 +14,7 @@ module Foxy
 
       def get(path)
         return unless File.exist?(path)
+
         File.foreach(path)
       end
 

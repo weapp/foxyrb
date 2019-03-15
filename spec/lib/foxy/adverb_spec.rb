@@ -1,7 +1,8 @@
-require 'spec_helper'
+# frozen_string_literal: true
+
+require "spec_helper"
 
 describe Foxy::Adverb do
-
   example do
     class Object
       include Foxy::Monads
@@ -16,13 +17,13 @@ describe Foxy::Adverb do
         self
       end
 
-        def null
-          nil
-      end
+      def null
+        nil
+    end
     end
 
     def f(v)
-        "<#{v}>"
+      "<#{v}>"
     end
 
     a = Hello.new.optionaly.s.optionaly.hello
@@ -40,7 +41,6 @@ describe Foxy::Adverb do
     a = nil.optionaly.tap { |x| f x }
     b = nil.optionaly(:tap) { |x| f x }
     expect(a).to eq b
-
 
     # Safy
 
@@ -63,10 +63,9 @@ describe Foxy::Adverb do
     expect(a).to eq b
 
     i = Hello.new
-    a = i.safy.tap { |value| raise "s" }
-    b = i.safy(:tap) { |value| raise "s" }
+    a = i.safy.tap { |_value| raise "s" }
+    b = i.safy(:tap) { |_value| raise "s" }
     expect(a).to eq b
-
 
     # Mapy
 
@@ -78,7 +77,6 @@ describe Foxy::Adverb do
     b = [1, 2, 3].mapy(:*, 2)
     expect(a).to eq b
 
-
     a = [[1, 2, 3]].mapy * 2
     b = [[1, 2, 3]].mapy(:*, 2)
     expect(a).to eq b
@@ -87,32 +85,27 @@ describe Foxy::Adverb do
     b = [[1, 2, 3], [4, 5, 6]].mapy(:mapy, :*, 2)
     expect(a).to eq b
 
-
-    a = ['Hello', 'world'].mapy.center(9).mapy.prepend('[').mapy.concat(']').join('-')
-    b = ['Hello', 'world'].mapy(:center, 9).mapy(:prepend, '[').mapy(:concat, ']').join('-')
+    a = %w[Hello world].mapy.center(9).mapy.prepend("[").mapy.concat("]").join("-")
+    b = %w[Hello world].mapy(:center, 9).mapy(:prepend, "[").mapy(:concat, "]").join("-")
     expect(a).to eq b
 
-
-    a = ['many values', 'and others'].mapy.tap { |x| f x }
-    b = ['many values', 'and others'].mapy(:tap) { |x| f x }
+    a = ["many values", "and others"].mapy.tap { |x| f x }
+    b = ["many values", "and others"].mapy(:tap) { |x| f x }
     expect(a).to eq b
 
-    a = ['many values', 'and others'].mapy.tap(&method(:f))
-    b = ['many values', 'and others'].mapy(:tap, &method(:f))
+    a = ["many values", "and others"].mapy.tap(&method(:f))
+    b = ["many values", "and others"].mapy(:tap, &method(:f))
     expect(a).to eq b
 
-
-    a = ['many values', 'and others'].mapy.split(/\s+/)
-    b = ['many values', 'and others'].mapy(:split, /\s+/)
+    a = ["many values", "and others"].mapy.split(/\s+/)
+    b = ["many values", "and others"].mapy(:split, /\s+/)
     expect(a).to eq b
-
 
     # Many
 
-    a = ['many values', 'and others'].many.split(/\s+/)
-    b = ['many values', 'and others'].many(:split, /\s+/)
+    a = ["many values", "and others"].many.split(/\s+/)
+    b = ["many values", "and others"].many(:split, /\s+/)
     expect(a).to eq b
-
 
     # Dangerously
 
@@ -120,25 +113,46 @@ describe Foxy::Adverb do
     b = 3.dangerously(:+, 2)
     expect(a).to eq b
 
-
-    a = nil.dangerously.itself rescue 'Raised error'
-    b = nil.dangerously(:itself) rescue 'Raised error'
+    a = begin
+          nil.dangerously.itself
+        rescue StandardError
+          "Raised error"
+        end
+    b = begin
+          nil.dangerously(:itself)
+        rescue StandardError
+          "Raised error"
+        end
     # expect(a).to eq b
 
     i = Hello.new
-    a = i.dangerously.null rescue 'Raised error'
-    b = i.dangerously(:null) rescue 'Raised error'
+    a = begin
+          i.dangerously.null
+        rescue StandardError
+          "Raised error"
+        end
+    b = begin
+          i.dangerously(:null)
+        rescue StandardError
+          "Raised error"
+        end
     expect(a).to eq b
 
-
-    a = r = 'hello'; r.dangerously.delete!('z') rescue 'Raised error'
-    b = r = 'hello'; r.dangerously(:delete!, 'z') rescue 'Raised error'
+    a = r = "hello"; begin
+                       r.dangerously.delete!("z")
+                     rescue StandardError
+                       "Raised error"
+                     end
+    b = r = "hello"; begin
+                       r.dangerously(:delete!, "z")
+                     rescue StandardError
+                       "Raised error"
+                     end
     expect(a).to eq b
 
-    a = (r = 'hello'; r.dangerously.delete!('h'))
-    b = (r = 'hello'; r.dangerously(:delete!, 'h'))
+    a = (r = ["h", "e", "l", "l", "o"]; r.dangerously.uniq!)
+    b = (r = ["h", "e", "l", "l", "o"]; r.dangerously(:uniq!))
     expect(a).to eq b
-
 
     # Chain!
     a = ([1, 2, 3, nil].mapy.safy.mapy * 3).inspect
@@ -150,30 +164,25 @@ describe Foxy::Adverb do
     b = [1, 2, 3, nil].mapy(:safy, :*, 3)
     expect(a).to eq b
 
-
-    a = [[1,2,3],[4,5,6]].many.mapy.many * 2
-    b = [[1,2,3],[4,5,6]].many(:mapy, :*, 2)
+    a = [[1, 2, 3], [4, 5, 6]].many.mapy.many * 2
+    b = [[1, 2, 3], [4, 5, 6]].many(:mapy, :*, 2)
     expect(a).to eq b
 
-
-    a = [[1,2,3],[4,5,6]].mapy.many.mapy * 2
-    b = [[1,2,3],[4,5,6]].mapy(:many, :*, 2)
+    a = [[1, 2, 3], [4, 5, 6]].mapy.many.mapy * 2
+    b = [[1, 2, 3], [4, 5, 6]].mapy(:many, :*, 2)
     expect(a).to eq b
 
-
-    a = [[[1],[2],[3]],[[4],[5],[6]]].many.mapy.mapy * 2
-    b = [[[1],[2],[3]],[[4],[5],[6]]].many(:mapy, :*, 2)
+    a = [[[1], [2], [3]], [[4], [5], [6]]].many.mapy.mapy * 2
+    b = [[[1], [2], [3]], [[4], [5], [6]]].many(:mapy, :*, 2)
     expect(a).to eq b
 
-
-    a = [[[1],[2],[3]],[[4],[5],[6]]].mapy.many.mapy * 2
-    b = [[[1],[2],[3]],[[4],[5],[6]]].mapy(:many, :*, 2)
+    a = [[[1], [2], [3]], [[4], [5], [6]]].mapy.many.mapy * 2
+    b = [[[1], [2], [3]], [[4], [5], [6]]].mapy(:many, :*, 2)
     expect(a).to eq b
 
-    a = [[[1],[2],[3]],[[4],[5],[6]]].mapy.and_then { |x| x.many * 2 }
-    b = [[[1],[2],[3]],[[4],[5],[6]]].mapy(:many, :*, 2)
+    a = [[[1], [2], [3]], [[4], [5], [6]]].mapy.and_then { |x| x.many * 2 }
+    b = [[[1], [2], [3]], [[4], [5], [6]]].mapy(:many, :*, 2)
     expect(a).to eq b
-
 
     4
       .then { |x| x + 1 }
@@ -183,9 +192,9 @@ describe Foxy::Adverb do
     expect(4.normally(:+, 1).normally(:+, 1)).to eq 6
 
     nil.safy
-      .then { |x| x + 1 }
-      .then { |x| x + 1 }
-      .then { |x| expect(x).to eq nil }
+       .then { |x| x + 1 }
+       .then { |x| x + 1 }
+       .then { |x| expect(x).to eq nil }
 
     expect(nil.safy(:+, 1).safy(:+, 1)).to eq nil
   end

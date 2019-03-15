@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Module
   def forward(name, klass)
     define_method(name) { |*args, &block| klass.call(self, *args, &block) }
@@ -40,11 +42,23 @@ class Hash
   def downcase_keys
     each_with_object({}) { |(k, v), h| h.store(k.downcase, v) }
   end
+
+  def deep_clone
+    clone.tap do |new_obj|
+      new_obj.each do |key, val|
+        new_obj[key] = val.deep_clone if val.is_a?(Array) || val.is_a?(Hash)
+      end
+    end
+  end
 end
 
 class Array
   def deep_symbolize_keys
     map(&:deep_symbolize_keys)
+  end
+
+  def deep_clone
+    map { |val| val.is_a?(Array) || val.is_a?(Hash) ? val.deep_clone : val }
   end
 end
 

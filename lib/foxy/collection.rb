@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "delegate"
 
 module Foxy
@@ -62,6 +64,7 @@ module Foxy
         .each_with_object({}) do |(tagname, id, cls, filter), memo|
           next memo[:tagname] = tagname if tagname
           next memo[:id] = id if id
+
           memo.fetch(:filters) { memo[:filters] = [] } << filter if filter
           memo.fetch(:cls) { memo[:cls] = [] } << cls if cls
         end

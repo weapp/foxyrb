@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "foxy/extensions"
 
 module Foxy
@@ -12,8 +14,9 @@ module Foxy
       call(*args, &block)
     end
 
-    def self.call(value, method_name=nil, *args, &block)
+    def self.call(value, method_name = nil, *args, &block)
       return new(value) unless method_name
+
       new(value).method_missing(method_name, *args, &block)
     end
 
@@ -26,7 +29,7 @@ module Foxy
     end
 
     def then(&block)
-      ::Object.instance_method(:class).bind(self).().new(and_then(&block))
+      ::Object.instance_method(:class).bind(self).call.new(and_then(&block))
     end
 
     def tap(*args, &block)
@@ -34,7 +37,7 @@ module Foxy
     end
 
     def inspect
-      ::Object.instance_method(:inspect).bind(self).()
+      ::Object.instance_method(:inspect).bind(self).call
     end
 
     # def to_s
@@ -47,7 +50,7 @@ module Foxy
   end
 
   Dangerously = Adverb.define do |&block|
-    block.call(value).tap { |result| fail "nil!" if result.nil? }
+    block.call(value).tap { |result| raise "nil!" if result.nil? }
   end
 
   Optional = Adverb.define do |&block|
@@ -63,11 +66,9 @@ module Foxy
   end
 
   Safy = Adverb.define do |&block|
-    begin
-      block.call(value)
-    rescue
-      value
-    end
+    block.call(value)
+  rescue StandardError
+    value
   end
 
   Thready = Adverb.define do |&block|

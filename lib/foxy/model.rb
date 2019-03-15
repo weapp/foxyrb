@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Foxy
   class Model
     attr_accessor :attributes

@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 require "multi_json"
 require "faraday"
-require 'faraday_middleware'
+require "faraday_middleware"
+require "faraday/conductivity"
 require "patron"
 
 require "foxy/extensions"
@@ -10,8 +13,8 @@ require "foxy/html_response"
 
 module Foxy
   class Client
-    OPTIONS = %i[proxy ssl builder url parallel_manager params headers builder_class]
-    REQUEST = %i[params_encoder request_proxy bind timeout open_timeout write_timeout boundary oauth context]
+    OPTIONS = %i[proxy ssl builder url parallel_manager params headers builder_class].freeze
+    REQUEST = %i[params_encoder request_proxy bind timeout open_timeout write_timeout boundary oauth context].freeze
 
     include RateLimit
 
@@ -22,7 +25,7 @@ module Foxy
     end
 
     def self.config
-      @config ||= {}.deep_merge(ancestors[1].try(:config) || {}).recursive_hash
+      @config ||= (ancestors[1].try(:config) || {}).deep_clone.recursive_hash
     end
 
     def self.configure
@@ -37,6 +40,16 @@ module Foxy
 
     config[:rate_limit] = nil
     config[:adapter] = :patron
+    # :test => [:Test, 'test'],
+    # :net_http => [:NetHttp, 'net_http'],
+    # :net_http_persistent => [:NetHttpPersistent, 'net_http_persistent'],
+    # :typhoeus => [:Typhoeus, 'typhoeus'],
+    # :patron => [:Patron, 'patron'],
+    # :em_synchrony => [:EMSynchrony, 'em_synchrony'],
+    # :em_http => [:EMHttp, 'em_http'],
+    # :excon => [:Excon, 'excon'],
+    # :rack => [:Rack, 'rack'],
+    # :httpclient => [:HTTPClient, 'httpclient']
     config[:timeout] = 120
     config[:open_timeout] = 20
     config[:user_agent] = nil
@@ -52,8 +65,54 @@ module Foxy
     config[:monad_result] = false
     # config[:params] = {}
 
+    config[:middlewares] = []
+    config[:middlewares] << %i[request request_id]
+
+    # request from **faraday**
+    # config[:middlewares] << [:request, :url_encoded] ## => UrlEncoded
+    # config[:middlewares] << [:request, :multipart] ## => Multipart
+    # config[:middlewares] << [:request, :retry] ## => Retry
+    # config[:middlewares] << [:request, :authorization] ## => Authorization
+    # config[:middlewares] << [:request, :basic_auth] ## => BasicAuthentication
+    # config[:middlewares] << [:request, :token_auth, "secret"] ## => TokenAuthentication
+    # config[:middlewares] << [:request, :instrumentation] ## => Instrumentation
+    # request from **faraday_middleware**
+    # config[:middlewares] << [:request, :oauth] ## => OAuth
+    # config[:middlewares] << [:request, :oauth2] ## => OAuth2
+    # config[:middlewares] << [:request, :json] ## => EncodeJson
+    # config[:middlewares] << [:request, :method_override] ## => MethodOverride
+    # request from <**araday-conductivity**
+    # config[:middlewares] << [:request, :user_agent, app: "MarketingSite", version: "1.1"]
+    # config[:middlewares] << [:request, :request_id] ## => Faraday::Conductivity::RequestId
+    # config[:middlewares] << [:request, :request_headers, accept: "application/vnd.widgets-v2+json", x_version_number: "10"]
+
+    # response from **faraday**
+    # config[:middlewares] << [:response, :raise_error] ## => RaiseError
+    # config[:middlewares] << [:response, :logger] ## => Logger
+    # config[:middlewares] << [:response, :mashify] ## => Mashify
+    # config[:middlewares] << [:response, :rashify] ## => Rashify
+    # config[:middlewares] << [:response, :json, :content_type => /\bjson$/] ## => ParseJson
+    # config[:middlewares] << [:response, :json_fix] ## => ParseJson
+    # config[:middlewares] << [:response, :xml] ## => ParseXml
+    # config[:middlewares] << [:response, :marshal] ## => ParseMarshal
+    # config[:middlewares] << [:response, :yaml] ## => ParseYaml
+    # config[:middlewares] << [:response, :dates] ## => ParseDates
+    # config[:middlewares] << [:response, :caching] ## => Caching
+    # response from **faraday_middleware**
+    # config[:middlewares] << [:response, :follow_redirects] ## => FollowRedirects
+    # config[:middlewares] << [:response, :chunked] ## => Chunked
+    # response from <**araday-conductivity**
+    # config[:middlewares] << [:response, :selective_errors, on: 425..599, except: 402..499] ##
+
+    # use from **faraday_middleware**
+    # config[:middlewares] << [:use, :instrumentation] ## => Instrumentation
+    # config[:middlewares] << [:use, :gzip] ## => Gzip
+    # use from <**araday-conductivity**
+    # config[:middlewares] << [:use, :extended_logging, logger: Logger.new(STDOUT)] ## => Faraday::Conductivity::ExtendedLogging
+    # config[:middlewares] << [:use, :repeater, retries: 6, mode: :exponential] ## => Faraday::Conductivity::Repeater
+
     def initialize(**kwargs)
-      @config = self.class.config.deep_merge({})
+      @config = self.class.config.deep_clone
       # @default_options = config[:default_options]
       self.class.configure.each { |block| instance_eval(&block) }
       @config = @config.deep_merge(kwargs)
@@ -62,12 +121,8 @@ module Foxy
       config[:url] = try(:url) || config[:url]
 
       @connection = Faraday.new(options) do |connection|
-        connection.use(Faraday::Response::Middleware)
+        config[:middlewares].each { |m| connection.public_send(*m) }
         yield(connection) if block_given?
-        # connection.response :logger
-        # connection.response :json
-        # connection.use FaradayMiddleware::Gzip
-        # connection.adapter(Faraday.default_adapter)
         connection.adapter(*config[:adapter])
       end
     end
@@ -102,13 +157,11 @@ module Foxy
       json = opts[:json]
       form = opts[:form]
 
-      if body
-        body = body.to_s
-      elsif form
-        headers["Content-Type"] = "application/x-www-form-urlencoded"
+      if form
+        headers[:content_type] = "application/x-www-form-urlencoded"
         body = URI.encode_www_form(form)
       elsif json
-        headers["Content-Type"] = "application/json"
+        headers[:content_type] = "application/json"
         body = MultiJson.dump(json)
       end
 
@@ -119,6 +172,7 @@ module Foxy
 
       return response unless monad_result
       return Foxy.Error(response) if is_error?(response)
+
       Foxy.Ok(response)
     end
 
@@ -149,7 +203,7 @@ module Foxy
 
     private
 
-    def raw_with_cache(options, cacheopts)
+    def raw_with_cache(options, _cacheopts)
       raw(options)
     end
   end

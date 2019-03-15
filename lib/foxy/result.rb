@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Foxy
   module Result
     class Status
