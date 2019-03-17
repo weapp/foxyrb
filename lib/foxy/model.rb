@@ -17,7 +17,7 @@ module Foxy
       attr_writer :model_name
 
       def fields
-        @fields ||= (ancestors[1].try(:fields) || {}).deep_clone
+        @fields ||= Foxy::StackHash.new(superclass.try(:fields) || {})
       end
 
       def field(field_name, type = :string, default: nil)
@@ -46,7 +46,7 @@ module Foxy
     end
 
     def initialize(attrs = {})
-      self.attributes = attrs.respond_to?(:as_json) ? attrs.as_json : attrs
+      self.attributes = attrs.try([:as_json], [:itself])
     end
 
     def eql?(other)

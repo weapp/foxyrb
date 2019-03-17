@@ -7,6 +7,10 @@ module Foxy
     attr_reader :rate_limit
 
     def interval
+      # pp rate_limit: self.class
+      # pp rate_limit: self.class.superclass
+      # pp rate_limit: self.class.config.class
+      # pp rate_limit: self.class.config.to_h
       1.0 / rate_limit
     end
 

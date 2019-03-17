@@ -8,10 +8,10 @@ module Foxy
   class Repository
     attr_reader :pk, :collection, :storage, :model, :class_key
 
-    def initialize(collection: nil, pk: :id, storage: Foxy::Storages::Yaml, model: true, class_key: :class)
+    def initialize(collection: nil, pk: :id, storage: nil, model: true, class_key: :class)
       @collection = collection || class_name.downcase
       @pk = pk
-      @storage = storage
+      @storage = storage || f.storage
       @model = model == true ? find_model : model
       @class_key = class_key
     end

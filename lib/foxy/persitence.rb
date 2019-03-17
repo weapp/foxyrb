@@ -32,7 +32,7 @@ module Foxy
       end
 
       def storage
-        @storage ||= Foxy::Storages::Yaml
+        @storage ||= f.storage
       end
 
       def class_key=(val)

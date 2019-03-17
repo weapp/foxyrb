@@ -10,6 +10,7 @@ require "foxy/extensions"
 require "foxy/rate_limit"
 require "foxy/file_cache"
 require "foxy/html_response"
+require "foxy/stack_hash"
 
 module Foxy
   class Client
@@ -25,11 +26,11 @@ module Foxy
     end
 
     def self.config
-      @config ||= (ancestors[1].try(:config) || {}).deep_clone.recursive_hash
+      @config ||= Foxy::StackHash.new(superclass.try(:config) || {}.recursive_hash)
     end
 
     def self.configure
-      @configures ||= (ancestors[1].try(:configure) || []).dup
+      @configures ||= Foxy::StackArray.new(superclass.try(:configure) || [])
       @configures << Proc.new if block_given?
       @configures
     end

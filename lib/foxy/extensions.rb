@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+
 class Module
   def forward(name, klass)
     define_method(name) { |*args, &block| klass.call(self, *args, &block) }
@@ -7,9 +8,9 @@ class Module
 end
 
 class Object
-  def deep_symbolize_keys
-    self
-  end
+  # def deep_symbolize_keys
+  #   self
+  # end
 
   def try(meth, *args, &block)
     if meth.is_a?(Array)
@@ -29,12 +30,18 @@ class Object
       instance_values.as_json(options)
     end
   end
+
+  def f
+    require_relative "./environment"
+    Foxy::Environment.current_enviornment
+  end
 end
 
 class Hash
-  def deep_symbolize_keys
-    symbolize_keys.tap { |h| h.each { |k, v| h[k] = v.deep_symbolize_keys } }
-  end
+  # def deep_symbolize_keys
+  #   # symbolize_keys.tap { |h| h.each { |k, v| h[k] = v.deep_symbolize_keys } }
+  #   Hash[map { |k, v| [k.to_sym, v.deep_symbolize_keys] }]
+  # end
 
   def symbolize_keys
     Hash[map { |k, v| [k.to_sym, v] }]
@@ -61,7 +68,7 @@ class Hash
   def deep_clone
     clone.tap do |new_obj|
       new_obj.each do |key, val|
-        new_obj[key] = val.deep_clone if val.is_a?(Array) || val.is_a?(Hash)
+        new_obj[key] = val.deep_clone if val.respond_to?(:deep_clone)
       end
     end
   end
@@ -85,12 +92,12 @@ class Hash
 end
 
 class Array
-  def deep_symbolize_keys
-    map(&:deep_symbolize_keys)
-  end
+  # def deep_symbolize_keys
+  #   map(&:deep_symbolize_keys)
+  # end
 
   def deep_clone
-    map { |val| val.is_a?(Array) || val.is_a?(Hash) ? val.deep_clone : val }
+    map { |val| val.respond_to?(:deep_clone) ? val.deep_clone : val }
   end
 
   def as_json(options = nil) #:nodoc:
@@ -129,6 +136,24 @@ end
 class String
   def as_json(_options = nil) #:nodoc:
     self
+  end
+end
+
+class Symbol
+  def as_json(_options = nil) #:nodoc:
+    to_s
+  end
+end
+
+class TrueClass
+  def as_json(_options = nil) #:nodoc:
+    to_s
+  end
+end
+
+class FalseClass
+  def as_json(_options = nil) #:nodoc:
+    to_s
   end
 end
 
