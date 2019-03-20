@@ -62,7 +62,7 @@ module Foxy
       return entity.as_json.merge(class_key => model.name) if model && entity.is_a?(Hash)
       raise "#{entity} is not a #{model.class}" if model && !entity.is_a?(model)
 
-      entity.as_json.merge(class_key => entity.class.name)
+      entity.try([:serializable_hash], [:as_json], [:to_h]).merge(class_key => entity.class.name)
     end
 
     def deserialize(hash)

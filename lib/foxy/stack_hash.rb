@@ -5,6 +5,8 @@ module Foxy
     extend Forwardable
     include Enumerable
 
+    attr_accessor :current, :stack
+
     def initialize(stack = nil, current = {})
       @stack = stack || {}
       @current = current

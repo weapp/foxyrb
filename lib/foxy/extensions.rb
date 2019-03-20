@@ -8,9 +8,9 @@ class Module
 end
 
 class Object
-  # def deep_symbolize_keys
-  #   self
-  # end
+  def deep_symbolize_keys
+    self
+  end
 
   def try(meth, *args, &block)
     if meth.is_a?(Array)
@@ -38,10 +38,10 @@ class Object
 end
 
 class Hash
-  # def deep_symbolize_keys
-  #   # symbolize_keys.tap { |h| h.each { |k, v| h[k] = v.deep_symbolize_keys } }
-  #   Hash[map { |k, v| [k.to_sym, v.deep_symbolize_keys] }]
-  # end
+  def deep_symbolize_keys
+    # symbolize_keys.tap { |h| h.each { |k, v| h[k] = v.deep_symbolize_keys } }
+    Hash[map { |k, v| [k.to_sym, v.deep_symbolize_keys] }]
+  end
 
   def symbolize_keys
     Hash[map { |k, v| [k.to_sym, v] }]
@@ -92,9 +92,9 @@ class Hash
 end
 
 class Array
-  # def deep_symbolize_keys
-  #   map(&:deep_symbolize_keys)
-  # end
+  def deep_symbolize_keys
+    map(&:deep_symbolize_keys)
+  end
 
   def deep_clone
     map { |val| val.respond_to?(:deep_clone) ? val.deep_clone : val }
