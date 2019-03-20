@@ -32,6 +32,7 @@ module Foxy
 
       define(:now) { -> { Time.now } }
       define(:storage) { Foxy::Storages::Yaml }
+      define(:env) { Foxy::Environment }
     end
   end
 end
