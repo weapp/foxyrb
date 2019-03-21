@@ -6,8 +6,13 @@ module Foxy
     attr_accessor :reader
 
     class << self
-      def with_persistence!
+      def with_persistence!(rcl=Foxy::Repository)
         include Foxy::Persistence
+        config[:repository_class] = rcl
+      end
+
+      def config
+        @config ||= Foxy::StackHash.new(superclass.try(:config) || {}.recursive_hash)
       end
 
       def model_name

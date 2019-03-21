@@ -4,12 +4,14 @@ module Foxy
   module Persistence
     def self.included(base)
       base.extend(ClassMethods)
+      base.config[:class_key] = :class
+      base.config[:primary_key] = "id"
     end
 
     module ClassMethods
       def primary_key=(key)
         @repo = nil
-        @primary_key = key.to_s
+        config[:primary_key] = key.to_s
       end
 
       def primary_key(field_name = nil, type = :string, **opts)
@@ -17,7 +19,7 @@ module Foxy
           self.primary_key = field_name
           field(field_name, type, **opts)
         else
-          @primary_key || "id"
+          config[:primary_key].to_s
         end
       end
 
@@ -41,20 +43,15 @@ module Foxy
       end
 
       def class_key
-        @class_key ||= :class
+        config[:class_key]
       end
 
       def repository
-        @repo ||= Foxy::Repository.new(collection: model_name,
-                                       pk: primary_key,
-                                       storage: storage,
-                                       model: self,
-                                       class_key: class_key)
-        # @repo ||= Foxy::SimpleRepository.new(collection: model_name,
-        #                                pk: primary_key,
-        #                                storage: storage,
-        #                                model: self,
-        #                                class_key: class_key)
+        @repo ||= config[:repository_class].new(collection: model_name,
+                                                pk: primary_key,
+                                                storage: storage,
+                                                model: self,
+                                                class_key: class_key)
       end
 
       def find(primary_key)
