@@ -2,8 +2,9 @@
 
 $LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
 require "foxy"
+require "foxy/test"
 
-Foxy::Environment.test!
+# Foxy::Environment.test!
 
 require_relative "./support/mock_http_bin"
 

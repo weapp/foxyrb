@@ -8,7 +8,7 @@ describe Foxy do
   end
 
   describe ("#f") do
-    describe ("#now") { it { expect(f.now.()).to eq Time.new(2010) } }
+    describe ("#now") { it { expect(f.now.()).to eq Time.utc(2010) } }
     describe ("#storage") { it { expect(f.storage).to eq Foxy::Storages::Yaml } }
   end
 end

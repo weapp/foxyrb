@@ -39,4 +39,8 @@ module Foxy
   end
 end
 
-Dir["#{File.dirname(__FILE__)}/foxy/**/*.rb"].sort.each { |file| require file }
+Dir["#{File.dirname(__FILE__)}/foxy/**/*.rb"]
+  .sort
+  .reject(&(/test/.method(:=~)))
+  .each { |file| require file }
+

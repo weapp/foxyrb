@@ -147,13 +147,13 @@ end
 
 class TrueClass
   def as_json(_options = nil) #:nodoc:
-    to_s
+    self
   end
 end
 
 class FalseClass
   def as_json(_options = nil) #:nodoc:
-    to_s
+    self
   end
 end
 

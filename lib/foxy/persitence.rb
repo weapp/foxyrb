@@ -50,6 +50,11 @@ module Foxy
                                        storage: storage,
                                        model: self,
                                        class_key: class_key)
+        # @repo ||= Foxy::SimpleRepository.new(collection: model_name,
+        #                                pk: primary_key,
+        #                                storage: storage,
+        #                                model: self,
+        #                                class_key: class_key)
       end
 
       def find(primary_key)
@@ -71,10 +76,10 @@ module Foxy
       def destroy_all
         repository.destroy_all
       end
-    end
 
-    def from_database(attrs)
-      new(attrs, persisted: true)
+      def from_database(attrs)
+        new(attrs, persisted: true)
+      end
     end
 
     def initialize(attrs, persisted: false)
@@ -103,6 +108,10 @@ module Foxy
     def update(attrs)
       assign_attributes(attrs)
       tap(&:save)
+    end
+
+    def persisted!
+      @persisted = true
     end
 
     def new?
