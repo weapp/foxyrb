@@ -26,6 +26,9 @@ module Foxy
                    img ins kbd map samp small span strong
                    sub sup textarea].freeze
 
+  BLOCK_TAGS = %w[p h1 h2 h3 h4 h5 h6 ol ul pre address blockquote
+                  dl div fieldset form hr noscript table br]
+
   def self.file_adapters
     @@adapters ||= {}
   end

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+require "bigdecimal"
 
 class Module
   def forward(name, klass)
@@ -29,6 +29,17 @@ class Object
     else
       instance_values.as_json(options)
     end
+  end
+
+  def instance_values #:nodoc:
+    instance_variables.inject({}) do |values, name|
+      values[name.to_s[1..-1]] = instance_variable_get(name)
+      values
+    end
+  end
+
+  def to_json(options = nil)
+    MultiJson.dump(as_json, pretty: true)
   end
 
   def f
@@ -89,6 +100,10 @@ class Hash
 
     Hash[subset.map { |k, v| [k.to_s, options ? v.as_json(options.dup) : v.as_json] }]
   end
+
+  def except(*keys)
+    dup.tap { |hsh| hsh.keys.each { |key| delete(key) } }
+  end
 end
 
 class Array
@@ -140,6 +155,18 @@ class String
 end
 
 class Symbol
+  def as_json(_options = nil) #:nodoc:
+    to_s
+  end
+end
+
+class Date
+  def as_json(_options = nil) #:nodoc:
+    to_s
+  end
+end
+
+class Time
   def as_json(_options = nil) #:nodoc:
     to_s
   end

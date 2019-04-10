@@ -13,7 +13,7 @@ module Foxy
       alias catch itself
 
       def always
-        response = yield(value!)
+        response = yield(value)
         response.is_a?(Status) ? response : self.class.new(response)
       end
 
@@ -25,8 +25,12 @@ module Foxy
         status == :error
       end
 
-      def value!
+      def value
         data.nil? ? error : data
+      end
+
+      def value!
+        value
       end
     end
 
@@ -43,6 +47,10 @@ module Foxy
       def initialize(error)
         super(:error)
         @error = error
+      end
+
+      def value!
+        raise error
       end
 
       alias catch always

@@ -195,7 +195,12 @@ module Foxy
     end
 
     def cache
-      @cache ||= FileCache.new(self.class.name.split("::").last.downcase)
+      @cache ||= FileCache.new(*cache_path)
+    end
+
+    def cache_path
+      # self.class.name.split("::").last.downcase
+      self.class.name.split("::").map{ |token| token.downcase}
     end
 
     def fixed(id, legth = 2, fill = "0")

@@ -5,8 +5,13 @@ require "foxy/adverb"
 require "foxy/collection"
 require "foxy/node"
 
+require 'htmlentities'
+
+
 module Foxy
   class Html < SimpleDelegator
+    DECODER = HTMLEntities.new
+
     include Monads
 
     def initialize(html = nil)
@@ -84,7 +89,13 @@ module Foxy
     end
 
     def texts
-      each_with_object([]) { |node, acc| acc << node.content if node.type == :notag }
+      each_with_object([]) do |node, acc|
+        if node.type == :notag
+          acc << DECODER.decode(node.content)
+        elsif BLOCK_TAGS.include?(node.tagname!)
+          acc << "\n"
+        end
+      end
     end
 
     def comments
@@ -92,7 +103,7 @@ module Foxy
     end
 
     def joinedtexts
-      texts.join.gsub(/[\r\n\s]+/, " ").strip
+      texts.join.gsub(/[ \r\n\s]+/, " ").strip
     end
 
     def attr(name)
@@ -105,6 +116,16 @@ module Foxy
 
     def to_s
       rebuild
+    end
+
+    def tables
+      search(tagname: "table").map do |table|
+        table.search(tagname: "tr").map do |tr|
+          tr.search(tagname: "td").map do |td|
+            td.joinedtexts
+          end
+        end
+      end
     end
 
     %i[src href title].each do |m|

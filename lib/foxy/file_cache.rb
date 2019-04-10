@@ -17,7 +17,9 @@ module Foxy
       @store = true
     end
 
-    def cache(path, format, miss: false, store: nil, dump: ITSELF, load: ITSELF, ext: format)
+    def cache(path, format, skip: false, miss: false, store: nil, dump: ITSELF, load: ITSELF, ext: format)
+      return yield if skip
+
       filepath = clean_path(path).join("/") + ".#{ext}"
 
       readed = !miss && @file_manager.get(filepath)
