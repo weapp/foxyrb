@@ -50,7 +50,10 @@ module Foxy
       end
 
       def value!
-        raise error
+        raise error if error.is_a?(Exception)
+        raise error if error.is_a?(Class) && error.ancestors.include?(Exception)
+
+        raise RuntimeError, error.to_s
       end
 
       alias catch always
