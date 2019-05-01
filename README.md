@@ -27,17 +27,17 @@ puts "Example1"
 puts "Way 1:"
 results = response.foxy.search(cls: "info-wrap")
 results.each do |result|
-    pp(summary: result.find(cls: "summary").try(:joinedtexts),
-       source: result.find(cls: "source").try(:joinedtexts),
-       where: result.find(cls: "location").try(:joinedtexts))
+    pp(summary: result.find(cls: "summary").try_first(:joinedtexts),
+       source: result.find(cls: "source").try_first(:joinedtexts),
+       where: result.find(cls: "location").try_first(:joinedtexts))
 end
 
 puts "Way 2:"
 results = response.foxy.css(".info-wrap")
 results.each do |result|
-    pp(summary: result.css(".summary").first.try(:joinedtexts),
-       source: result.css(".source").first.try(:joinedtexts),
-       where: result.css(".location").first.try(:joinedtexts))
+    pp(summary: result.css(".summary").first.try_first(:joinedtexts),
+       source: result.css(".source").first.try_first(:joinedtexts),
+       where: result.css(".location").first.try_first(:joinedtexts))
 end
 ```
 

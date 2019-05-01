@@ -6,10 +6,6 @@ require "foxy/storages/yaml"
 
 module Foxy
   class SimpleRepository < BaseRepository
-    def store
-      @store ||= YAML::Store.new "db/#{model_name}.store.yaml"
-    end
-
     def find(primary_key)
       data = store.transaction { store[primary_key] }
 
@@ -31,7 +27,7 @@ module Foxy
     end
 
     def destroy_all
-      File.delete path if File.exist? path
+      File.delete(path) if File.exist?(path)
 
       true
     end

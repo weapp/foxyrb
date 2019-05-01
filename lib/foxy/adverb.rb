@@ -29,7 +29,7 @@ module Foxy
     end
 
     def then(&block)
-      ::Object.instance_method(:class).bind(self).call.new(and_then(&block))
+      ::Object.instance_method(:class).bind(self).().new(and_then(&block))
     end
 
     def tap(*args, &block)
@@ -37,7 +37,7 @@ module Foxy
     end
 
     def inspect
-      ::Object.instance_method(:inspect).bind(self).call
+      ::Object.instance_method(:inspect).bind(self).()
     end
 
     # def to_s
@@ -50,29 +50,29 @@ module Foxy
   end
 
   Dangerously = Adverb.define do |&block|
-    block.call(value).tap { |result| raise "nil!" if result.nil? }
+    block.(value).tap { |result| raise "nil!" if result.nil? }
   end
 
   Optional = Adverb.define do |&block|
-    value.nil? ? nil : block.call(value)
+    value.nil? ? nil : block.(value)
   end
 
   Mapy = Adverb.define do |&block|
-    value.map { |v| block.call(v) }
+    value.map { |v| block.(v) }
   end
 
   Many = Adverb.define do |&block|
-    value.flat_map { |v| block.call(v) }
+    value.flat_map { |v| block.(v) }
   end
 
   Safy = Adverb.define do |&block|
-    block.call(value)
+    block.(value)
   rescue StandardError
     value
   end
 
   Thready = Adverb.define do |&block|
-    Thread.new { block.call(value) }
+    Thread.new { block.(value) }
   end
 
   module Monads

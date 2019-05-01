@@ -23,12 +23,12 @@ module Foxy
       filepath = clean_path(path).join("/") + ".#{ext}"
 
       readed = !miss && @file_manager.get(filepath)
-      return load.call(readed) if readed
+      return load.(readed) if readed
 
-      res = dump.call(yield).to_s
+      res = dump.(yield).to_s
       @file_manager.put(filepath, res) if store.nil? ? self.store : store
 
-      load.call(res)
+      load.(res)
     end
 
     def self.define(format:, **default_opts)

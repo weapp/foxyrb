@@ -18,7 +18,7 @@ describe Foxy::StackHash do
   end
 
   describe "hash_n4" do
-    it { expect(hash_n4.to_h).to eq(hkey1: :a, hkey2: :b, hkey3: :c, :hkey3_b=>:e, hkey4: :d) }
+    it { expect(hash_n4.to_h).to eq(hkey1: :a, hkey2: :b, hkey3: :c, hkey3_b: :e, hkey4: :d) }
 
     it { expect(hash_n4[:hkey1]).to eq(:a) }
     it { expect(hash_n4[:hkey2]).to eq(:b) }
@@ -32,7 +32,7 @@ describe Foxy::StackHash do
     it { expect(hash_n4.fetch(:hkey3)).to eq(:c) }
     it { expect(hash_n4.fetch(:hkey3_b)).to eq(:e) }
     it { expect(hash_n4.fetch(:hkey4)).to eq(:d) }
-    it { expect { hash_n4.fetch(:hkey5) }.to raise_exception KeyError }
+    it { expect { hash_n4.fetch(:hkey5) }.to raise_exception(KeyError) }
 
     it { expect(hash_n4.fetch(:hkey5) { :hkey55 }).to eq(:hkey55) }
   end
@@ -48,9 +48,9 @@ describe Foxy::StackHash do
 
     it { expect(hash_n2.fetch(:hkey1)).to eq(:a) }
     it { expect(hash_n2.fetch(:hkey2)).to eq(:b) }
-    it { expect { hash_n2.fetch(:hkey3) }.to raise_exception KeyError }
-    it { expect { hash_n2.fetch(:hkey4) }.to raise_exception KeyError }
-    it { expect { hash_n2.fetch(:hkey5) }.to raise_exception KeyError }
+    it { expect { hash_n2.fetch(:hkey3) }.to raise_exception(KeyError) }
+    it { expect { hash_n2.fetch(:hkey4) }.to raise_exception(KeyError) }
+    it { expect { hash_n2.fetch(:hkey5) }.to raise_exception(KeyError) }
 
     it { expect(hash_n2.fetch(:hkey5) { :hkey55 }).to eq(:hkey55) }
   end
@@ -68,12 +68,11 @@ describe Foxy::StackHash do
 
     it { expect(hash_n2.fetch(:hkey1)).to eq(:a) }
     it { expect(hash_n2.fetch(:hkey2)).to eq(:b) }
-    it { expect { hash_n2.fetch(:hkey3) }.to raise_exception KeyError }
-    it { expect { hash_n2.fetch(:hkey4) }.to raise_exception KeyError }
-    it { expect { hash_n2.fetch(:hkey5) }.to raise_exception KeyError }
+    it { expect { hash_n2.fetch(:hkey3) }.to raise_exception(KeyError) }
+    it { expect { hash_n2.fetch(:hkey4) }.to raise_exception(KeyError) }
+    it { expect { hash_n2.fetch(:hkey5) }.to raise_exception(KeyError) }
 
     it { expect(hash_n2.fetch(:hkey5) { :hkey55 }).to eq(:hkey55) }
-
   end
 
   describe "different childs" do
@@ -89,7 +88,7 @@ describe Foxy::StackHash do
       end
 
       it { expect(config.to_h).to eq({}) }
-      it { expect(c1.to_h).to eq({params: {api_token: "my-secret-token"}}) }
+      it { expect(c1.to_h).to eq(params: { api_token: "my-secret-token" }) }
       it { expect(c2.to_h).to eq({}) }
     end
 
@@ -106,13 +105,12 @@ describe Foxy::StackHash do
         config[:mid] << :retry
       end
 
-      it { expect(config.to_h).to eq(mid: [:req_id, :retry]) }
-      it { expect(c1.to_h).to eq(mid: [:req_id, :retry, :req_json]) }
-      it { expect(c2.to_h).to eq(:mid=>[:req_id, :retry, :res_json]) }
+      it { expect(config.to_h).to eq(mid: %i[req_id retry]) }
+      it { expect(c1.to_h).to eq(mid: %i[req_id retry req_json]) }
+      it { expect(c2.to_h).to eq(mid: %i[req_id retry res_json]) }
     end
 
     describe "complex case" do
-
       let(:config) { described_class.new({}.recursive_hash) }
       let(:c1) { described_class.new(config) }
       let(:c2) { described_class.new(config) }
@@ -134,33 +132,39 @@ describe Foxy::StackHash do
         c2[:mid] << %i[response json]
       end
 
-      it { expect(config.to_h).to eq(
-            :headers => [[:user_agent, "UA"]],
-            :mid => [[:request, :request_id]],
-            :rate_limit => nil,
-            :ssl => [[:verify, true]],
-            :url => "http:/",
-            :user_agent => nil,
-          ) }
+      it {
+        expect(config.to_h).to eq(
+          headers: [[:user_agent, "UA"]],
+          mid: [%i[request request_id]],
+          rate_limit: nil,
+          ssl: [[:verify, true]],
+          url: "http:/",
+          user_agent: nil
+        )
+      }
 
-      it { expect(c1.to_h).to eq(
-            :headers => [[:user_agent, "UA"]],
-            :mid => [[:request, :request_id], [:request, :json]],
-            :params => [[:api_token, "my-secret-token"]],
-            :rate_limit => nil,
-            :ssl => [[:verify, true]],
-            :url => "http:/",
-            :user_agent => nil,
-          ) }
+      it {
+        expect(c1.to_h).to eq(
+          headers: [[:user_agent, "UA"]],
+          mid: [%i[request request_id], %i[request json]],
+          params: [[:api_token, "my-secret-token"]],
+          rate_limit: nil,
+          ssl: [[:verify, true]],
+          url: "http:/",
+          user_agent: nil
+        )
+      }
 
-      it { expect(c2.to_h).to eq(
-        :headers => [[:user_agent, "UA"]],
-        :mid => [[:request, :request_id], [:response, :json]],
-        :rate_limit => nil,
-        :ssl => [[:verify, true]],
-        :url => "https://httpbin.org",
-        :user_agent => "test-agent",
-       ) }
+      it {
+        expect(c2.to_h).to eq(
+          headers: [[:user_agent, "UA"]],
+          mid: [%i[request request_id], %i[response json]],
+          rate_limit: nil,
+          ssl: [[:verify, true]],
+          url: "https://httpbin.org",
+          user_agent: "test-agent"
+        )
+      }
     end
   end
 
@@ -168,9 +172,9 @@ describe Foxy::StackHash do
     let(:sh) { Foxy::StackHash.method(:new) }
     let(:sa) { Foxy::StackArray.method(:new) }
     let(:str) { "#<SH #<SH {}, {:mid=>[:rid]}>, {:mid=>#<SA #<SA [:rid], []>, [:json]>}>" }
-    let(:o) { sh.(sh.({}, {mid: [:rid]}), {mid: sa.(sa.([:rid], []), [:json])}) }
+    let(:o) { sh.(sh.({}, mid: [:rid]), mid: sa.(sa.([:rid], []), [:json])) }
 
     it { expect(o.inspect).to eq str }
-    it { expect(o.to_h).to eq mid: [:rid, :json] }
+    it { expect(o.to_h).to eq mid: %i[rid json] }
   end
 end

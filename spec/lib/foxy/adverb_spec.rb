@@ -8,7 +8,7 @@ describe Foxy::Adverb do
       include Foxy::Monads
     end
 
-    class Hello
+    class HelloClass
       def hello
         "hello"
       end
@@ -19,15 +19,15 @@ describe Foxy::Adverb do
 
       def null
         nil
-    end
+      end
     end
 
     def f(v)
       "<#{v}>"
     end
 
-    a = Hello.new.optionaly.s.optionaly.hello
-    b = Hello.new.optionaly(:s).optionaly(:hello)
+    a = HelloClass.new.optionaly.s.optionaly.hello
+    b = HelloClass.new.optionaly(:s).optionaly(:hello)
     expect(a).to eq b
 
     a = nil.optionaly.s.optionaly.hello
@@ -44,8 +44,8 @@ describe Foxy::Adverb do
 
     # Safy
 
-    a = Hello.new.safy.j.hello
-    b = Hello.new.safy(:j).hello
+    a = HelloClass.new.safy.j.hello
+    b = HelloClass.new.safy(:j).hello
     expect(a).to eq b
 
     a = nil.safy.j.safy.hello
@@ -62,7 +62,7 @@ describe Foxy::Adverb do
     b = nil.safy(:*, 2)
     expect(a).to eq b
 
-    i = Hello.new
+    i = HelloClass.new
     a = i.safy.tap { |_value| raise "s" }
     b = i.safy(:tap) { |_value| raise "s" }
     expect(a).to eq b
@@ -125,7 +125,7 @@ describe Foxy::Adverb do
         end
     # expect(a).to eq b
 
-    i = Hello.new
+    i = HelloClass.new
     a = begin
           i.dangerously.null
         rescue StandardError

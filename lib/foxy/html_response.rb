@@ -20,7 +20,7 @@ module Foxy
     protected
 
     def is_number(hash, key)
-      hash[key] = hash[key].try(:gsub, ",", "").try(:to_i) if hash[key]
+      hash[key] = hash[key].try_first(:gsub, ",", "").try_first(:to_i) if hash[key]
     end
 
     def is_list(hash, key, sep = /\s*,\s*/)

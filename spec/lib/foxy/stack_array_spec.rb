@@ -17,22 +17,22 @@ describe Foxy::StackArray do
   end
 
   describe "ary_n4" do
-    it { expect(ary_n4.to_a).to eq [:a, :b, :c, :e, :d] }
+    it { expect(ary_n4.to_a).to eq %i[a b c e d] }
 
-    it { expect(ary_n4.each).to be_a Enumerator }
+    it { expect(ary_n4.each).to be_a(Enumerator) }
 
-    it { expect(ary_n4.each.to_a).to eq [:a, :b, :c, :e, :d] }
+    it { expect(ary_n4.each.to_a).to eq %i[a b c e d] }
 
-    it { expect(ary_n4.map(&:to_s)).to eq ["a", "b", "c", "e", "d"] }
+    it { expect(ary_n4.map(&:to_s)).to eq %w[a b c e d] }
   end
 
   describe "ary_n2" do
-    it { expect(ary_n2.to_a).to eq [:a, :b] }
+    it { expect(ary_n2.to_a).to eq %i[a b] }
 
-    it { expect(ary_n2.each).to be_a Enumerator }
+    it { expect(ary_n2.each).to be_a(Enumerator) }
 
-    it { expect(ary_n2.each.to_a).to eq [:a, :b] }
+    it { expect(ary_n2.each.to_a).to eq %i[a b] }
 
-    it { expect(ary_n2.map(&:to_s)).to eq ["a", "b"] }
+    it { expect(ary_n2.map(&:to_s)).to eq %w[a b] }
   end
 end

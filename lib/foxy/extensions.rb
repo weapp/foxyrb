@@ -1,18 +1,15 @@
 # frozen_string_literal: true
+
 require "bigdecimal"
 
 class Module
   def forward(name, klass)
-    define_method(name) { |*args, &block| klass.call(self, *args, &block) }
+    define_method(name) { |*args, &block| klass.(self, *args, &block) }
   end
 end
 
 class Object
-  def deep_symbolize_keys
-    self
-  end
-
-  def try(meth, *args, &block)
+  def try_first(meth, *args, &block)
     if meth.is_a?(Array)
       [meth, *args].each do |m, *a|
         return public_send(m, *a, &block) if respond_to?(m)
@@ -32,26 +29,25 @@ class Object
   end
 
   def instance_values #:nodoc:
-    instance_variables.inject({}) do |values, name|
+    instance_variables.each_with_object({}) do |name, values|
       values[name.to_s[1..-1]] = instance_variable_get(name)
-      values
     end
   end
 
-  def to_json(options = nil)
+  def to_json(_options = nil)
     MultiJson.dump(as_json, pretty: true)
   end
 
   def f
-    require_relative "./environment"
-    Foxy::Environment.current_enviornment
+    require_relative("./environment")
+    Foxy::Environment.current_environment
   end
 end
 
 class Hash
   def deep_symbolize_keys
     # symbolize_keys.tap { |h| h.each { |k, v| h[k] = v.deep_symbolize_keys } }
-    Hash[map { |k, v| [k.to_sym, v.deep_symbolize_keys] }]
+    Hash[map { |k, v| [k.to_sym, v.try_first(%i[deep_symbolize_keys itself])] }]
   end
 
   def symbolize_keys
@@ -67,9 +63,10 @@ class Hash
     tap { self.default_proc = proc { |h, k| h[k] = Hash.new(&h.default_proc) } }
   end
 
-  def slice(*keys)
-    # Hash[keys.zip(values_at(*keys))]
-    keys.each_with_object({}) { |k, h| key?(k) && h.store(k, self[k]) }
+  unless instance_methods.include?(:slice)
+    def slice(*keys)
+      keys.each_with_object({}) { |k, h| key?(k) && h.store(k, self[k]) }
+    end
   end
 
   def downcase_keys
@@ -101,7 +98,7 @@ class Hash
     Hash[subset.map { |k, v| [k.to_s, options ? v.as_json(options.dup) : v.as_json] }]
   end
 
-  def except(*keys)
+  def except(*_keys)
     dup.tap { |hsh| hsh.keys.each { |key| delete(key) } }
   end
 end
@@ -121,7 +118,7 @@ class Array
 end
 
 class NilClass
-  def try(*_args)
+  def try_first(*_args)
     nil
   end
 
@@ -183,5 +180,3 @@ class FalseClass
     self
   end
 end
-
-require "foxy/adverb"

@@ -6,13 +6,13 @@ module Foxy
     attr_accessor :reader
 
     class << self
-      def with_persistence!(rcl=Foxy::Repository)
+      def with_persistence!(rcl = Foxy::Repository)
         include Foxy::Persistence
         config[:repository_class] = rcl
       end
 
       def config
-        @config ||= Foxy::StackHash.new(superclass.try(:config) || {}.recursive_hash)
+        @config ||= Foxy::StackHash.new(superclass.try_first(:config) || {}.recursive_hash)
       end
 
       def model_name
@@ -22,7 +22,7 @@ module Foxy
       attr_writer :model_name
 
       def fields
-        @fields ||= Foxy::StackHash.new(superclass.try(:fields) || {})
+        @fields ||= Foxy::StackHash.new(superclass.try_first(:fields) || {})
       end
 
       def field(field_name, type = :string, default: nil)
@@ -51,7 +51,7 @@ module Foxy
     end
 
     def initialize(attrs = {})
-      self.attributes = attrs.try([:as_json], [:itself])
+      self.attributes = attrs.try_first([:as_json], [:itself])
     end
 
     def eql?(other)
@@ -99,7 +99,7 @@ module Foxy
     end
 
     def to_json(**opts)
-      MultiJson.dump(as_json(**opts))
+      MultiJson.dump(as_json(opts))
     end
 
     def attributes
@@ -127,7 +127,7 @@ module Foxy
     end
 
     def method_missing(method, *args)
-      return super unless ::Object.instance_method(:class).bind(self).call.fields == {}
+      return super unless ::Object.instance_method(:class).bind(self).().fields == {}
       return super unless args.empty?
 
       attributes[method.to_s]

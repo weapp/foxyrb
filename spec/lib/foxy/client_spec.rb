@@ -121,18 +121,19 @@ describe Foxy::Client do
     )
   end
 
-  describe "#connection" do
-    it("#options.timeout") { expect(subject.connection.options.timeout).to be 120 }
-    it("#options.open_timeout") { expect(subject.connection.options.open_timeout).to be 20 }
-    it("#headers['User-Agent']")  { expect(subject.connection.headers["User-Agent"]).to eq "test-agent" }
-    it("#ssl.verify") { expect(subject.connection.ssl.verify).to be true }
-    it("#url_prefix.to_s") { expect(subject.connection.url_prefix.to_s).to eq "https://httpbin.org/" }
+  describe "#faraday_client" do
+    it("#options.timeout") { expect(subject.faraday_client.options.timeout).to be 120 }
+    it("#options.open_timeout") { expect(subject.faraday_client.options.open_timeout).to be 20 }
+    it("#headers['User-Agent']")  { expect(subject.faraday_client.headers["User-Agent"]).to eq "test-agent" }
+    it("#ssl.verify") { expect(subject.faraday_client.ssl.verify).to be true }
+    it("#url_prefix.to_s") { expect(subject.faraday_client.url_prefix.to_s).to eq "https://httpbin.org/" }
   end
 
   describe "subclient with monad_result" do
     subject do
       c = Class.new(Foxy::Client) do
         config[:monad_result] = true
+        # config[:middlewares] << [:response, :monad_response]
       end
 
       c.new(adapter: adapter, url: "https://httpbin.org", user_agent: "test-agent")
@@ -169,31 +170,26 @@ describe Foxy::Client do
 
       client = klass.new(adapter: adapter, url: "https://httpbin.org", user_agent: "test-agent")
 
-      begin
-        response = client.raw(method: :post, path: "/post", json: { key: :value })
-        expect(response).to match(
-          "args" => { "api_token" => "my-secret-token" },
-          "data" => "{\"key\":\"value\"}",
-          "files" => {},
-          "form" => {},
-          "headers" => {
-            "Accept" => "application/vnd.widgets-v2+json",
-            "Authorization" => "Token token=\"secret\"",
-            "Content-Length" => "15",
-            "Content-Type" => "application/json",
-            "Host" => "httpbin.org",
-            "User-Agent" => match(%r{Foxy/1.1 \(.*\) ruby/.*}),
-            "X-Request-Id" => EXECUTION,
-            "X-Version-Number" => "10"
-          },
-          "json" => { "key" => "value" },
-          "origin" => String, # "127.0.0.1",
-          "url" => "https://httpbin.org/post?api_token=my-secret-token"
-        )
-      rescue StandardError
-        require "pry"
-        binding.pry
-      end
+      response = client.raw(method: :post, path: "/post", json: { key: :value })
+      expect(response).to match(
+        "args" => { "api_token" => "my-secret-token" },
+        "data" => "{\"key\":\"value\"}",
+        "files" => {},
+        "form" => {},
+        "headers" => {
+          "Accept" => "application/vnd.widgets-v2+json",
+          "Authorization" => "Token token=\"secret\"",
+          "Content-Length" => "15",
+          "Content-Type" => "application/json",
+          "Host" => "httpbin.org",
+          "User-Agent" => match(%r{Foxy/1.1 \(.*\) ruby/.*}),
+          "X-Request-Id" => EXECUTION,
+          "X-Version-Number" => "10"
+        },
+        "json" => { "key" => "value" },
+        "origin" => String, # "127.0.0.1",
+        "url" => "https://httpbin.org/post?api_token=my-secret-token"
+      )
     end
   end
 

@@ -53,7 +53,7 @@ module Foxy
         raise error if error.is_a?(Exception)
         raise error if error.is_a?(Class) && error.ancestors.include?(Exception)
 
-        raise RuntimeError, error.to_s
+        raise error.to_s
       end
 
       alias catch always

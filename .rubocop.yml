@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.5
+  TargetRubyVersion: 2.6.2
 
 Documentation:
   Enabled: false
@@ -9,12 +9,15 @@ Style/StringLiterals:
   EnforcedStyle: double_quotes
 LineLength:
   Max: 100
+LambdaCall:
+  EnforcedStyle: braces
 
 Style/MethodCallWithArgsParentheses:
   Enabled: true
   IgnoreMacros: true
   IgnoredMethods:
     - "require"
+    - "require_relative"
     - "source"
     - "task"
     - "add_dependency"
@@ -28,6 +31,8 @@ Style/MethodCallWithArgsParentheses:
     - "eq"
     - "eql"
     - "be"
+    - "be_a"
+    - "raise_exception"
   AllowParenthesesInMultilineCall: false
   AllowParenthesesInChaining: false
   AllowParenthesesInCamelCaseMethod: false
@@ -35,3 +40,7 @@ Style/MethodCallWithArgsParentheses:
   SupportedStyles:
     - require_parentheses
     - omit_parentheses
+Metrics/MethodLength:
+  Max: 20
+Style/FormatStringToken:
+  EnforcedStyle: template

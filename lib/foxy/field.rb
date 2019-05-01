@@ -17,7 +17,7 @@ module Foxy
       bool: ->(val) { !(!val || ["false", "0", 0].include?(val)) },
       integer: ->(val) { val.to_i },
       float: ->(val) { val.to_f },
-      bigdecimal: ->(val) { BigDecimal.new(val) },
+      bigdecimal: ->(val) { BigDecimal(val) },
       # datetime: ->(val) { val },
       time: ->(val) { Time.parse(val) },
       # date: ->(val) { val },
@@ -28,7 +28,7 @@ module Foxy
       # value = default if value.nil? && !default_on_null
       return if value.nil?
 
-      TYPECASTS.fetch(type, type).try([:typecast, value], [:new, value], [:call, value])
+      TYPECASTS.fetch(type, type).try_first([:typecast, value], [:new, value], [:call, value])
     end
   end
 end

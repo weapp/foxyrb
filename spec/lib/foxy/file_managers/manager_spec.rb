@@ -7,7 +7,7 @@ def as_s(buffer)
 end
 
 describe Foxy::FileManagers::Manager do
-  %i[memory fs s3].each do |adapter|
+  %i[memory fs s3 redis].each do |adapter|
     next if adapter == :s3 && !ENV["BUCKET"]
 
     context "Adapter: #{adapter}" do

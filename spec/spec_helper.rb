@@ -6,7 +6,7 @@ require "foxy/test"
 
 # Foxy::Environment.test!
 
-require_relative "./support/mock_http_bin"
+require_relative("./support/mock_http_bin")
 
 require "securerandom"
 EXECUTION = SecureRandom.uuid.split("-").first

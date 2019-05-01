@@ -1,9 +1,10 @@
+# frozen_string_literal: true
 
 class MockHTTPBin
   attr_reader :env
 
   def self.call(env)
-    new(env).call
+    new(env).()
   end
 
   def initialize(env)

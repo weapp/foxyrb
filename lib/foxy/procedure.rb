@@ -5,7 +5,7 @@ require "securerandom"
 module Foxy
   class Procedure < SimpleDelegator
     def self.call(instance, *args, &block)
-      new(instance).call(*args, &block)
+      new(instance).(*args, &block)
     end
 
     def binding
@@ -13,7 +13,7 @@ module Foxy
     end
 
     def to_s
-      ::Object.instance_method(:to_s).bind(self).call
+      ::Object.instance_method(:to_s).bind(self).()
     end
 
     # def self.define(klass, &block)

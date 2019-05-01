@@ -5,8 +5,7 @@ require "foxy/adverb"
 require "foxy/collection"
 require "foxy/node"
 
-require 'htmlentities'
-
+require "htmlentities"
 
 module Foxy
   class Html < SimpleDelegator
@@ -44,7 +43,7 @@ module Foxy
         # primer y el ultimo nodo
         if y.zero? && node.tag? && (!tagname || node.tagname! == tagname) &&
            (!id || node.id! == id) && (cls - node.cls!).empty? &&
-           (!fun || fun.call(node))
+           (!fun || fun.(node))
           # Guardamos porque pudiera ser que el parametro
           # tagname fuera nil
           close_tagname = node.tagname!
@@ -121,9 +120,7 @@ module Foxy
     def tables
       search(tagname: "table").map do |table|
         table.search(tagname: "tr").map do |tr|
-          tr.search(tagname: "td").map do |td|
-            td.joinedtexts
-          end
+          tr.search(tagname: "td").map(&:joinedtexts)
         end
       end
     end

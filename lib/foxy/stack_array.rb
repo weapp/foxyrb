@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Foxy
   class StackArray
     extend Forwardable
@@ -25,6 +27,7 @@ module Foxy
 
     def ==(other)
       return false unless other.respond_to?(:to_a)
+
       to_a == other.to_a
     end
 

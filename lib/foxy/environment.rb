@@ -1,27 +1,90 @@
-require_relative "./environments/default_environment"
+# frozen_string_literal: true
+
+# require_relative "./environments/default_environment"
+require_relative("./stack_hash")
 
 module Foxy
+  module Environments
+    class MemoizedProc
+      def initialize(&block)
+        @p = block
+        @cache = nil
+        @cached = false
+      end
+
+      def call
+        return @cache if @cached
+
+        @cached = true
+        @cache = @p.()
+      end
+    end
+
+    class Environment
+      def self.definitions
+        @definitions ||= Foxy::StackHash.new(superclass.try_first(:definitions) || {})
+      end
+
+      def self.define(m, &block)
+        definitions[m] = MemoizedProc.new(&block)
+        define_method(m) { self.class[m] }
+      end
+
+      def self.[](key)
+        definitions[key].()
+      end
+
+      def [](key)
+        self.class.definitions[key]
+      end
+    end
+  end
+
   class Environment
     class << self
-      def current_enviornment
-        @current_enviornment ||= Foxy::Environments::DevelopmentEnvironment.new
+      def create_environment(h, k, parent = nil)
+        cls = Class.new(parent || h[:default])
+        Foxy::Environments.const_set(k.to_s.capitalize, cls)
+        h[k] = cls
       end
 
-      def current_enviornment=(val)
-        @current_enviornment = val
+      def environments
+        @environments ||= {}.tap do |hsh|
+          create_environment(hsh, :default, Environments::Environment)
+          hsh.default_proc = proc { |h, k| create_environment(h, k) }
+        end
       end
 
-      def enviornment=(val)
-        const_name = "#{val.capitalize}Environment"
-        # return unless Foxy::Environments.const_defined?(const_name)
-        self.current_enviornment = Foxy::Environments.const_get(const_name).new
+      def define(env, m, &block)
+        return environments[env.to_sym].define(m, &block) if block_given?
+
+        m.each do |m, b|
+          define(env, m, &b)
+        end
+      end
+
+      def current_environment
+        @current_environment ||= environments[:development].new
+      end
+
+      attr_writer :current_environment
+
+      def environment=(val)
+        self.current_environment = environments[val.to_sym].new
       end
 
       def method_missing(m, *args, &block)
         method_name = m.to_s
         super unless method_name.end_with?("!")
-        self.enviornment = method_name[0..-2]
+        self.environment = method_name[0..-2]
       end
     end
+
+    define :default,
+           now: proc { -> { Time.now } },
+           storage: proc { Foxy::Storages::Yaml },
+           env: proc { Foxy::Environment }
+
+    define(:test, :now) { -> { Time.utc(2010) } }
   end
 end
