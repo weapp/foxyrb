@@ -37,6 +37,10 @@ module Foxy
       def [](key)
         self.class.definitions[key]
       end
+
+      def eager_load
+        self.class.definitions.to_h.keys.each { |definition| public_send(definition) }
+      end
     end
   end
 

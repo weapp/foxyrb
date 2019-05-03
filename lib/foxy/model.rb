@@ -33,7 +33,7 @@ module Foxy
         define_method(field_name) { attributes[field_name] }
 
         define_method "#{field_name}=" do |val|
-          attributes[field_name] = val.nil? ? nil : field.cast(val)
+          @attributes[field_name] = field.cast(val)
         end
       end
 

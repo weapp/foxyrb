@@ -137,6 +137,13 @@ describe Foxy::Model do
         expect(subject.k1).to eq 3
         expect(klass.all.first.k1).to eq 3
       end
+
+      it do
+        subject.k1 = 3
+        expect(subject.k1).to eq 3
+        subject.save
+        expect(klass.all.first.k1).to eq 3
+      end
     end
 
     describe "without fields" do

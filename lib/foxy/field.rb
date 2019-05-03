@@ -24,7 +24,16 @@ module Foxy
       any: ->(val) { val }
     }.freeze
 
+    def self.list(type)
+      -> (val) { val.map { |e| cast(type, e) } }
+    end
+
     def cast(value)
+      self.class.cast(type, value)
+    end
+
+    def self.cast(type, value)
+
       # value = default if value.nil? && !default_on_null
       return if value.nil?
 
