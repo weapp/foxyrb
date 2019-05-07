@@ -4,7 +4,11 @@ require "bigdecimal"
 
 class Module
   def forward(name, klass)
-    define_method(name) { |*args, &block| klass.(self, *args, &block) }
+    if klass.respond_to?(:call)
+      define_method(name) { |*args, &block| klass.(self, *args, &block) }
+    else
+      define_method(name) { |*args, &block| klass.new(self, *args, &block).() }
+    end
   end
 end
 

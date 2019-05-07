@@ -131,7 +131,7 @@ module Foxy
     def json(**options)
       always(raw(**options)) do |r|
         MultiJson.load(r)
-      rescue => e
+      rescue StandardError => e
         raise "error parsing json: #{r}\n with error: #{e}`"
       end
     end
