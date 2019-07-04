@@ -24,6 +24,8 @@ module Foxy
     REQUEST = %i[params_encoder request_proxy bind timeout open_timeout write_timeout
                  boundary oauth context].freeze
 
+    JsonParseError = Class.new(StandardError)
+
     include RateLimit
 
     attr_reader :connection, :config
@@ -132,7 +134,7 @@ module Foxy
       always(raw(**options)) do |r|
         MultiJson.load(r) if r != ""
       rescue StandardError => e
-        raise "error parsing json: #{r}\n with error: #{e}`"
+        raise JsonParseError.new("error parsing json: #{r}\n with error: #{e}`")
       end
     end
 
