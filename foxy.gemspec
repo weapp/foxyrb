@@ -26,7 +26,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency "htmlentities", "~> 4.3.4"
   spec.add_dependency "ibsciss-middleware", "~> 0.4.2"
   spec.add_dependency "multi_json", "~> 1.0"
-  spec.add_dependency "patron", "~> 0.13.1"
+  # spec.add_dependency "patron", "~> 0.13.1"
+  spec.add_dependency "typhoeus", "~> 1.3.1"
 
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "colorize"

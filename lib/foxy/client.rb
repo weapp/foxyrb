@@ -4,7 +4,8 @@ require "multi_json"
 require "faraday"
 require "faraday_middleware"
 require "faraday/conductivity"
-require "patron"
+# require "patron"
+require "typhoeus"
 
 require "foxy/extensions"
 require "foxy/rate_limit"
@@ -45,7 +46,8 @@ module Foxy
     end
 
     config[:rate_limit] = nil
-    config[:adapter] = :patron
+    # config[:adapter] = :patron
+    config[:adapter] = :typhoeus
     config[:timeout] = 120
     config[:open_timeout] = 20
     config[:user_agent] = nil
@@ -80,6 +82,7 @@ module Foxy
     def connection
       @connection ||= Middleware::Builder.new do |b|
         b.use(Middlewares::MonadResponse) if config[:monad_result]
+        b.use(Middlewares::Parallel, faraday_client)
         b.use(Middlewares::JsonRequest)
         b.use(Middlewares::FormRequest)
         b.use(Middlewares::FaradayBackend, faraday_client)
@@ -87,7 +90,7 @@ module Foxy
     end
 
     def faraday_client
-      Faraday.new(options) do |connection|
+      @faraday_client ||= Faraday.new(options) do |connection|
         config[:middlewares].each { |m| connection.public_send(*m) }
         yield(connection) if block_given?
         connection.adapter(*config[:adapter])
@@ -111,16 +114,23 @@ module Foxy
       response.status >= 400
     end
 
-    def run_request(**options)
+    def run_request(options)
       wait!
-      connection.(config.deep_merge(options))
+      options = if options.is_a?(Array)
+                  options.map { |o| config.deep_merge(o) }
+                else
+                  config.deep_merge(options)
+                end
+      connection.(options)
     end
 
-    def request(**options)
+    def request(options)
+      return run_request(options) if options.is_a?(Array)
       cache.yaml("request", *cache_path(options), skip: skip_cache?) do
-        run_request(**options)
+        run_request(options)
       end
     end
+
 
     def cache_path(options)
       options.to_a.sort.flatten
@@ -130,16 +140,16 @@ module Foxy
       true
     end
 
-    def json(**options)
-      always(raw(**options)) do |r|
+    def json(options)
+      always(raw(options)) do |r|
         MultiJson.load(r) if r != ""
       rescue StandardError => e
         raise JsonParseError.new("error parsing json: #{r}\n with error: #{e}`")
       end
     end
 
-    def raw(**options)
-      always(request(**options), &:body)
+    def raw(options)
+      always(request(options), &:body)
     end
 
     # cache will recieve options and options[:cache]
@@ -170,10 +180,16 @@ module Foxy
 
     private
 
-    def always(instance, &block)
-      return yield(instance) unless config[:monad_result]
+    def always(response, &block)
+      return response.map { |r| always!(r, &block) } if response.is_a?(Array)
 
-      instance.always(&block)
+      always!(response, &block)
+    end
+
+    def always!(response, &block)
+      return yield(response) unless config[:monad_result]
+
+      response.always(&block)
     end
 
     def raw_with_cache(options, _cacheopts)

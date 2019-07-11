@@ -11,6 +11,12 @@ module Foxy
       def call(env)
         response = @app.(env)
 
+        return response.map { |r| for_each!(r) } if response.is_a?(Array)
+
+        for_each!(response)
+      end
+
+      def for_each!(response)
         @is_error.(response) ? Foxy.Error(response) : Foxy.Ok(response)
       end
     end

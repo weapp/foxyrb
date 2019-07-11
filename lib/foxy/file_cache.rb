@@ -18,6 +18,8 @@ module Foxy
     end
 
     def cache(path, format, skip: false, miss: false, store: nil, dump: ITSELF, load: ITSELF, ext: format)
+      # p [path, format, skip: skip, miss: miss, store: store, dump: dump, load: load, ext: ext]
+
       return yield if skip
 
       filepath = clean_path(path).join("/") + ".#{ext}"
