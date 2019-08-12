@@ -15,6 +15,8 @@ require "foxy/stack_hash"
 
 require "middleware"
 
+require_relative "cache_helper"
+
 Dir["#{File.dirname(__FILE__)}/middlewares/**/*.rb"]
   .sort
   .each { |file| require file }
@@ -28,6 +30,7 @@ module Foxy
     JsonParseError = Class.new(StandardError)
 
     include RateLimit
+    include CacheHelper
 
     attr_reader :connection, :config
 
@@ -159,23 +162,6 @@ module Foxy
       klass = options.delete(:class) || Foxy::HtmlResponse
       response_options = options.merge(options.delete(:response_params) || {})
       klass.new(raw_with_cache(options, cacheopts), response_options)
-    end
-
-    def cache
-      @cache ||= FileCache.new(*cache_base)
-    end
-
-    def client_name
-      self.class.name || object_id.to_s
-    end
-
-    def cache_base
-      # self.class.name.split("::").last.downcase
-      client_name.split("::").map(&:downcase)
-    end
-
-    def fixed(id, legth = 2, fill = "0")
-      id.to_s.rjust(legth, fill)
     end
 
     private
