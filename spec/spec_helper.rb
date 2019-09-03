@@ -3,6 +3,7 @@
 $LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
 require "foxy"
 require "foxy/test"
+require "foxy/json"
 
 # Foxy::Environment.test!
 

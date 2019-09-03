@@ -45,4 +45,5 @@ end
 Dir["#{File.dirname(__FILE__)}/foxy/**/*.rb"]
   .sort
   .reject(&/test/.method(:=~))
+  .reject(&/json\.rb/.method(:=~))
   .each { |file| require file }

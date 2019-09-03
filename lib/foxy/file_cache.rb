@@ -60,6 +60,11 @@ module Foxy
            dump: MultiJson.method(:dump),
            load: MultiJson.method(:load))
 
+    define(format: :marshal,
+           ext: "bin",
+           dump: Marshal.method(:dump),
+           load: Marshal.method(:load))
+
     private
 
     def clean_path(path)

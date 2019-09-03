@@ -12,6 +12,12 @@ module Foxy
         IO.copy_stream(input, path)
       end
 
+      # def mkdir_p(dir)
+      #   paths = dir.split("/")
+      #   dirs = paths.count.times.map { |i| paths[0..i].join("/") }
+      #   dirs.each { |dir| FileUtils.mkdir(dir) unless File.exist?(dir) }
+      # end
+
       def get(path)
         return unless File.exist?(path)
 
