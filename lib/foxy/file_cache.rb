@@ -7,11 +7,12 @@ module Foxy
   class FileCache
     ITSELF = :itself.to_proc.freeze
 
-    attr_accessor :store, :file_manager
+    attr_accessor :store, :file_manager, :separator
 
-    def initialize(*path, adapter: nil)
+    def initialize(*path, adapter: nil, separator: "/")
+      @separator = separator
       @file_manager = Foxy::FileManagers::Manager.new(
-        namespace: clean_path(path).unshift("cache").join("/") + "/",
+        namespace: clean_path(path).unshift("cache").join(separator) + separator,
         adapter: adapter
       )
       @store = true
@@ -22,7 +23,7 @@ module Foxy
 
       return yield if skip
 
-      filepath = clean_path(path).join("/") + ".#{ext}"
+      filepath = clean_path(path).join(separator) + ".#{ext}"
 
       readed = !miss && @file_manager.get(filepath)
       return load.(readed) if readed

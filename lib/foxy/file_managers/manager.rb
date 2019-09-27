@@ -11,9 +11,7 @@ module Foxy
         @adapter =
           if adapter.nil?
             Foxy.default_file_adapter.new(options)
-            Foxy.default_file_adapter.new(options)
           elsif adapter.is_a? Symbol
-            Foxy.file_adapters[adapter].new(options)
             Foxy.file_adapters[adapter].new(options)
           else
             adapter

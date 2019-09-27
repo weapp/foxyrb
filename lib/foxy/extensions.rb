@@ -24,10 +24,10 @@ class Object
     end
   end
 
-  def f
-    require_relative("./environment")
-    Foxy::Environment.current_environment
-  end
+  # def foxy
+  #   require_relative("./environment")
+  #   Foxy::Env.current
+  # end
 end
 
 class Hash

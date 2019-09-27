@@ -44,7 +44,7 @@ module Foxy
     end
   end
 
-  class Environment
+  class Env
     class << self
       def create_environment(h, k, parent = nil)
         cls = Class.new(parent || h[:default])
@@ -67,14 +67,14 @@ module Foxy
         end
       end
 
-      def current_environment
-        @current_environment ||= environments[:development].new
+      def current
+        @current ||= environments[:development].new
       end
 
-      attr_writer :current_environment
+      attr_writer :current
 
       def environment=(val)
-        self.current_environment = environments[val.to_sym].new
+        self.current = environments[val.to_sym].new
       end
 
       def method_missing(m, *args, &block)
@@ -87,7 +87,7 @@ module Foxy
     define :default,
            now: proc { -> { Time.now } },
            storage: proc { Foxy::Storages::Yaml },
-           env: proc { Foxy::Environment }
+           env: proc { Foxy::Env }
 
     define(:test, :now) { -> { Time.utc(2010) } }
   end
