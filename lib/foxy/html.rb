@@ -126,7 +126,7 @@ module Foxy
     end
 
     %i[src href title].each do |m|
-      define_method(m) { attr_reader(m) }
+      define_method(m) { attr(m) }
     end
   end
 end

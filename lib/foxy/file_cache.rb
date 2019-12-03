@@ -7,7 +7,12 @@ module Foxy
   class FileCache
     ITSELF = :itself.to_proc.freeze
 
-    attr_accessor :store, :file_manager, :separator
+    attr_accessor :store, :file_manager, :separator, :cacheable
+
+    def nocache!(reason=nil)
+      self.cacheable = false
+      puts "NO CACHE: #{reason}"
+    end
 
     def initialize(*path, adapter: nil, separator: "/")
       @separator = separator
@@ -19,17 +24,18 @@ module Foxy
     end
 
     def cache(path, format, skip: false, miss: false, store: nil, dump: ITSELF, load: ITSELF, ext: format)
+      self.cacheable = true
       # p [path, format, skip: skip, miss: miss, store: store, dump: dump, load: load, ext: ext]
 
-      return yield if skip
+      return yield self if skip
 
       filepath = clean_path(path).join(separator) + ".#{ext}"
 
       readed = !miss && @file_manager.get(filepath)
       return load.(readed) if readed
 
-      res = dump.(yield).to_s
-      @file_manager.put(filepath, res) if store.nil? ? self.store : store
+      res = dump.(yield self).to_s
+      @file_manager.put(filepath, res) if cacheable && (store.nil? ? self.store : store)
 
       load.(res)
     end

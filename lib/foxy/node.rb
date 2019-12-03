@@ -51,7 +51,7 @@ module Foxy
         slash1 = tag? ? "" : "/"
         slash2 = tag? && closetag? ? "/" : ""
         allow.each do |attr_name|
-          attr_value = attr_reader(attr_name)
+          attr_value = attr(attr_name)
           slash2 = " #{attr_name}=\"#{attr_value}\"#{slash2}" if attr_value
         end
         name = translate_table.fetch(name, name)

@@ -34,6 +34,18 @@ module Foxy
 
     attr_reader :connection, :config
 
+    def self.request(*args)
+      config[:middlewares] << [:request, *args]
+    end
+
+    def self.response(*args)
+      config[:middlewares] << [:response, *args]
+    end
+
+    def self.use(*args)
+      config[:middlewares] << [:use, *args]
+    end
+
     def self.instance
       @instance ||= new
     end
@@ -178,7 +190,19 @@ module Foxy
       response.always(&block)
     end
 
-    def raw_with_cache(options, _cacheopts)
+    # def raw_with_cache(options, _cacheopts)
+    #   raw(options)
+    # end
+
+    def raw_with_cache(options, cacheopts)
+      retries ||= 10
+      return raw(options) unless cacheopts
+      cache.html(*cacheopts) do
+        raw(options)
+        # .tap { |html| raise unless html.include?("title") }
+      end
+    rescue
+      retry if (retries -= 1) != -1
       raw(options)
     end
   end

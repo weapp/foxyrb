@@ -6,7 +6,17 @@ module Foxy
 
     def initialize(html, params)
       @html = html
+      @html = html.force_encoding(source_encoding) if source_encoding
+      @html = html.encode(destination_encoding) if destination_encoding
       @params = params
+    end
+
+    def source_encoding
+      # "ASCII-8BIT"
+    end
+
+    def destination_encoding
+      # "UTF-8"
     end
 
     def foxy
