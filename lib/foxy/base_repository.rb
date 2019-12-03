@@ -11,7 +11,7 @@ module Foxy
     def initialize(collection: nil, pk: :id, storage: nil, model: true, class_key: :class)
       @collection = collection || class_name.downcase
       @pk = pk
-      @storage = storage || f.storage
+      @storage = storage || Foxy::Env.current.storage
       @model = model == true ? find_model : model
       @class_key = class_key
     end

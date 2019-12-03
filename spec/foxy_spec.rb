@@ -7,9 +7,9 @@ describe Foxy do
     expect(Foxy::VERSION).not_to be nil
   end
 
-  describe "#f" do
-    describe("#now") { it { expect(f.now.()).to eq Time.utc(2010) } }
-    describe("#storage") { it { expect(f.storage).to eq Foxy::Storages::Yaml } }
+  describe "Foxy::Env#current" do
+    describe("#now") { it { expect(Foxy::Env.current.now.()).to eq Time.utc(2010) } }
+    describe("#storage") { it { expect(Foxy::Env.current.storage).to eq Foxy::Storages::Yaml } }
   end
 
   describe do

@@ -34,7 +34,7 @@ module Foxy
       end
 
       def storage
-        @storage ||= f.storage
+        @storage ||= Foxy::Env.current.storage
       end
 
       def class_key=(val)
