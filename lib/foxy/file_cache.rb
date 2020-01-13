@@ -24,7 +24,7 @@ module Foxy
     end
 
     def default_lock
-      -> () { -> () {} }
+      -> (_filepath) { -> () {} }
     end
 
     def cache(path, format, skip: false, miss: false, store: nil, dump: ITSELF, load: ITSELF, ext: format, locker: default_lock)
@@ -38,7 +38,7 @@ module Foxy
       readed = !miss && @file_manager.get(filepath)
       return load.(readed) if readed
 
-      release = locker.()
+      release = locker.(filepath)
 
       unless release
         sleep(0.1)
