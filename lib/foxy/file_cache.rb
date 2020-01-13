@@ -23,7 +23,11 @@ module Foxy
       @store = true
     end
 
-    def cache(path, format, skip: false, miss: false, store: nil, dump: ITSELF, load: ITSELF, ext: format)
+    def default_lock
+      -> () { -> () {} }
+    end
+
+    def cache(path, format, skip: false, miss: false, store: nil, dump: ITSELF, load: ITSELF, ext: format, locker: default_lock)
       self.cacheable = true
       # p [path, format, skip: skip, miss: miss, store: store, dump: dump, load: load, ext: ext]
 
@@ -34,8 +38,18 @@ module Foxy
       readed = !miss && @file_manager.get(filepath)
       return load.(readed) if readed
 
+      release = locker.()
+
+      unless release
+        sleep(0.1)
+        return cache(path, format, skip: skip, miss: miss, store: store, dump: dump, load: load, ext: ext)
+      end
+
       res = dump.(yield self).to_s
+
       @file_manager.put(filepath, res) if cacheable && (store.nil? ? self.store : store)
+
+      release.()
 
       load.(res)
     end
