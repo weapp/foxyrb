@@ -6,6 +6,7 @@ require "yaml"
 module Foxy
   class FileCache
     ITSELF = :itself.to_proc.freeze
+    CACHE_PREFIX = "cache"
 
     attr_accessor :store, :file_manager, :separator, :cacheable
 
@@ -17,7 +18,7 @@ module Foxy
     def initialize(*path, adapter: nil, separator: "/")
       @separator = separator
       @file_manager = Foxy::FileManagers::Manager.new(
-        namespace: clean_path(path).unshift("cache").join(separator) + separator,
+        namespace: clean_path(path).unshift(CACHE_PREFIX).join(separator) + separator,
         adapter: adapter
       )
       @store = true
