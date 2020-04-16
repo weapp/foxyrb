@@ -41,18 +41,25 @@ module Foxy
 
       release = locker.(filepath)
 
-      unless release
-        sleep(0.1)
+      if release
+        res = dump.(yield self).to_s
+
+        @file_manager.put(filepath, res) if cacheable && (store.nil? ? self.store : store)
+
+        release.()
+
+        load.(res)
+      else
+        sleep(0.5) until free?(filepath)
         return cache(path, format, skip: skip, miss: miss, store: store, dump: dump, load: load, ext: ext)
       end
+    end
 
-      res = dump.(yield self).to_s
-
-      @file_manager.put(filepath, res) if cacheable && (store.nil? ? self.store : store)
-
+    def free?(filepath)
+      release = locker.(filepath)
+      return false unless release
       release.()
-
-      load.(res)
+      true
     end
 
     def self.define(format:, **default_opts)
